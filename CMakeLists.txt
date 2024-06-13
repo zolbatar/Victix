@@ -20,6 +20,12 @@ add_executable(${PROJECT_NAME}
         src/imgui/backends/imgui_impl_opengl3.cpp
         src/App.cpp
         src/App.h
+        src/model/World.cpp
+        src/model/World.h
+        src/model/Terrain.cpp
+        src/model/Terrain.h
+        src/model/PerlinNoise.cpp
+        src/model/PerlinNoise.h
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE

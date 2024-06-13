@@ -3,7 +3,6 @@
 #include "imgui.h"
 #include "imgui/backends/imgui_impl_glfw.h"
 #include "imgui/backends/imgui_impl_opengl3.h"
-#include "imgui/misc/freetype/imgui_freetype.h"
 #include "App.h"
 
 int window_width = 1280;
