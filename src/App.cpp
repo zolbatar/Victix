@@ -72,18 +72,18 @@ void App::Go() {
         world.Render(cr);
 
         // Write to texture and blit
-/*        cairo_surface_flush(surface);
+        cairo_surface_flush(surface);
         glBindTexture(GL_TEXTURE_2D, render);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height,
                      0, GL_BGRA, GL_UNSIGNED_BYTE,
                      cairo_image_surface_get_data(surface));
         ImGui::GetWindowDrawList()->AddImage(
                 reinterpret_cast<ImTextureID>(render),
-                ImVec2(rand() % 100, 0),
+                ImVec2(0.0f, 0.0f),
                 ImVec2(width, height),
                 ImVec2(0.0f, 0.0f),
                 ImVec2(1.0f, 1.0f),
-                IM_COL32(255, 255, 255, 255));*/
+                IM_COL32(255, 255, 255, 255));
 
         ImGui::End();
         ImGui::PopStyleColor();

@@ -9,11 +9,11 @@ private:
     GLFWwindow *window;
     GLFWmonitor *primary;
     const GLFWvidmode *mode;
-    bool show_demo_window = true;
+    bool show_demo_window = false;
     cairo_surface_t *surface;
     cairo_t *cr;
     GLuint render;
-    int width, height;
+    float width, height;
     const float ui_font_size = 16.0f;
 
 public:
