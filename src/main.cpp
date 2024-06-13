@@ -54,7 +54,7 @@ int main() {
 #endif
 
     // Create window with graphics context
-    GLFWwindow *window = glfwCreateWindow(window_width, window_height, "SlothWrite", nullptr, nullptr);
+    GLFWwindow *window = glfwCreateWindow(window_width, window_height, "Victix", nullptr, nullptr);
     if (window == nullptr)
         return 1;
     glfwMakeContextCurrent(window);

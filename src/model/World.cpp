@@ -1,5 +1,10 @@
 #include "World.h"
 
-void World::Render() {
-    terrain.Render();
+void World::Render(cairo_t *cr) {
+
+    // Background
+    cairo_set_source_rgb(cr, 0.05, 0.05, 0.1);
+    cairo_paint(cr);
+
+    terrain.Render(cr);
 }

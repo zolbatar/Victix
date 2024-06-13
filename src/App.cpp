@@ -7,6 +7,41 @@
 ImVec4 HexToImVec4(uint32_t hex);
 
 App::App(GLFWwindow *window) : window(window) {
+    ImGuiIO &io = ImGui::GetIO();
+
+    // Query default monitor resolution
+    primary = glfwGetPrimaryMonitor();
+    mode = glfwGetVideoMode(primary);
+
+    // Load font with DPI scaling
+    float xScale, yScale;
+    glfwGetMonitorContentScale(primary, &xScale, &yScale);
+    float dpi_scaling = xScale; // assuming you're on a system where horizontal and vertical scales are the same
+    Interface::SetDPIScaling(dpi_scaling);
+    io.FontGlobalScale = 1.0f / dpi_scaling;
+
+    // Set default UI font
+    io.Fonts->AddFontFromFileTTF(
+            "assets/fonts/Inter-Regular.ttf",
+            dpi_scaling * ui_font_size,
+            nullptr,
+            nullptr);
+
+    // And build atlases
+    io.Fonts->Build();
+
+    // Setup Dear ImGui style
+    //ImGui::StyleColorsDark();
+    ImGui::StyleColorsLight();
+
+    // Cairo render surface
+    width = mode->width * Interface::GetDPIScaling();
+    height = mode->height * Interface::GetDPIScaling();
+    surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
+    cr = cairo_create(surface);
+    cairo_set_antialias(cr, CAIRO_ANTIALIAS_BEST);
+//    cairo_scale(cr, 1.0, 1.0);
+    render = Interface::CreateTexture(width, height, GL_NEAREST, nullptr);
 }
 
 void App::Go() {
@@ -33,7 +68,22 @@ void App::Go() {
         ImGui::Begin("Surface", NULL,
                      ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 
-        world.Render();
+        // Render world
+        world.Render(cr);
+
+        // Write to texture and blit
+/*        cairo_surface_flush(surface);
+        glBindTexture(GL_TEXTURE_2D, render);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height,
+                     0, GL_BGRA, GL_UNSIGNED_BYTE,
+                     cairo_image_surface_get_data(surface));
+        ImGui::GetWindowDrawList()->AddImage(
+                reinterpret_cast<ImTextureID>(render),
+                ImVec2(rand() % 100, 0),
+                ImVec2(width, height),
+                ImVec2(0.0f, 0.0f),
+                ImVec2(1.0f, 1.0f),
+                IM_COL32(255, 255, 255, 255));*/
 
         ImGui::End();
         ImGui::PopStyleColor();
@@ -46,12 +96,15 @@ void App::Go() {
         int display_w, display_h;
         glfwGetFramebufferSize(window, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
-/*        glClearColor(0.0, 0.0, 0.0, 1.0);
-        glClear(GL_COLOR_BUFFER_BIT);*/
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         glfwSwapBuffers(window);
     }
+}
+
+App::~App() {
+    cairo_destroy(cr);
+    cairo_surface_destroy(surface);
 }
 
 ImVec4 HexToImVec4(uint32_t hex) {

@@ -7,6 +7,8 @@ find_package(opengl_system)
 find_package(glfw3)
 find_package(freetype)
 find_package(box2d)
+find_package(cairo)
+find_package(stb)
 
 add_executable(${PROJECT_NAME}
         src/main.cpp
@@ -26,7 +28,7 @@ add_executable(${PROJECT_NAME}
         src/model/Terrain.h
         src/model/PerlinNoise.cpp
         src/model/PerlinNoise.h
-)
+        src/ui/Interface.cpp)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
         ${CMAKE_SOURCE_DIR}/src/imgui)
@@ -34,5 +36,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 target_link_libraries(${PROJECT_NAME}
         opengl::opengl
         box2d::box2d
+        cairo::cairo
         Freetype::Freetype
+        stb::stb
         glfw)
