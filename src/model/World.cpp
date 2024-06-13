@@ -7,4 +7,6 @@ void World::Render(cairo_t *cr) {
     cairo_paint(cr);
 
     terrain.Render(cr);
+	PerlinNoise noise;
+	terrain.GenerateTerrain(noise);
 }
