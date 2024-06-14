@@ -38,25 +38,24 @@ void Terrain::Render(cairo_t *cr, WorldPosition &pos) {
     cairo_rectangle(cr,
                     pos.ConvertWorldToScreenX((-TERRAIN_WIDTH / 2)), pos.ConvertWorldToScreenY(TERRAIN_HEIGHT),
                     TERRAIN_WIDTH * pos.scale_x, TERRAIN_HEIGHT * pos.scale_y);
-    cairo_pattern_t *pat = Interface::SetLinear(pos.ConvertWorldToScreenX(TERRAIN_WIDTH), pos.ConvertWorldToScreenY(TERRAIN_HEIGHT / 2),
-                                                TERRAIN_HEIGHT * pos.scale_y / 2, 90);
-    cairo_pattern_add_color_stop_rgb(pat, 0.0, sky1[0], sky1[1], sky1[2]);
-    cairo_pattern_add_color_stop_rgb(pat, 1.0, sky3[0], sky3[1], sky3[2]);
-    cairo_set_source(cr, pat);
+    double sky_shade = 0.7;
+    cairo_set_source_rgb(cr, 27.0 / 100.0 * sky_shade, 56.0 / 100.0 * sky_shade, 89.0 / 100.0 * sky_shade);
     cairo_fill(cr);
-    cairo_pattern_destroy(pat);
 
     // Sea
     cairo_rectangle(cr,
                     pos.ConvertWorldToScreenX((-TERRAIN_WIDTH / 2)), pos.ConvertWorldToScreenY(0),
                     TERRAIN_WIDTH * pos.scale_x, TERRAIN_HEIGHT * pos.scale_y);
-    pat = Interface::SetLinear(pos.ConvertWorldToScreenX(TERRAIN_WIDTH), pos.ConvertWorldToScreenY(TERRAIN_HEIGHT / 2),
-                               TERRAIN_HEIGHT * pos.scale_y / 2, 270);
-    cairo_pattern_add_color_stop_rgb(pat, 0.0, sea1[0], sea1[1], sea1[2]);
-    cairo_pattern_add_color_stop_rgb(pat, 1.0, sea3[0], sea3[1], sea3[2]);
-    cairo_set_source(cr, pat);
+    cairo_set_source_rgb(cr, 0.0 / 100.0, 14.12 / 100.0, 21.96 / 100.0);
     cairo_fill(cr);
-    cairo_pattern_destroy(pat);
+
+    // Sea line
+    cairo_move_to(cr, pos.ConvertWorldToScreenX((-TERRAIN_WIDTH / 2)), pos.ConvertWorldToScreenY(0));
+    cairo_line_to(cr, pos.ConvertWorldToScreenX((TERRAIN_WIDTH / 2)), pos.ConvertWorldToScreenY(0));
+    sky_shade = 0.9;
+    cairo_set_line_width(cr, 1.0 * (1.0 + (pos.scale_x * 5.0)));
+    cairo_set_source_rgb(cr, 74.0 / 100.0 * sky_shade, 84.0 / 100.0 * sky_shade, 96.0 / 100.0 * sky_shade);
+    cairo_stroke(cr);
 
     // Work out step
     unsigned int d = next_power_of_2(1.0f / pos.scale_x);
@@ -76,13 +75,8 @@ void Terrain::Render(cairo_t *cr, WorldPosition &pos) {
     cairo_close_path(cr);
 
     // Fill
-    pat = Interface::SetLinear(pos.ConvertWorldToScreenX(TERRAIN_WIDTH), pos.ConvertWorldToScreenY(TERRAIN_HEIGHT * 0.2),
-                               TERRAIN_HEIGHT * pos.scale_y, 90);
-    cairo_pattern_add_color_stop_rgb(pat, 0.0, layer1[0], layer1[1], layer1[2]);
-    cairo_pattern_add_color_stop_rgb(pat, 1.0, layer3[0], layer3[1], layer3[2]);
-    cairo_set_source(cr, pat);
+    cairo_set_source_rgb(cr, 24.41 / 100.0, 13.04 / 100.0, 7.55 / 100.0);
     cairo_fill(cr);
-    cairo_pattern_destroy(pat);
 
     // Outline
     cairo_append_path(cr, path);

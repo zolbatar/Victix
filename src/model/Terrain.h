@@ -12,18 +12,6 @@ private:
     const int DEPTH = 5;
     std::vector<float> heights;
 
-    const double layer1[3] = {24.41 / 100.0, 13.04 / 100.0, 7.55 / 100.0};
-    const double layer2[3] = {33.74 / 100.0, 26.67 / 100.0, 21.18 / 100.0};
-    const double layer3[3] = {71.8 / 100.0, 69.45 / 100.0, 66.72 / 100.0};
-
-    const double sky_shade = 0.5;
-    const double sky1[3] = {12.0 / 100.0 * sky_shade, 25.0 / 100.0 * sky_shade, 39.0 / 100.0 * sky_shade};
-    const double sky3[3] = {27.0 / 100.0 * sky_shade, 56.0 / 100.0 * sky_shade, 89.0 / 100.0 * sky_shade};
-
-    const double sea_shade = 1.0;
-    const double sea1[3] = {0.0 / 100.0 * sea_shade, 41.2 / 100.0 * sea_shade, 58.0 / 100.0 * sea_shade};
-    const double sea3[3] = {0.0 / 100.0 * sea_shade, 0.0 / 100.0 * sea_shade, 0.0 / 100.0 * sea_shade};
-
 public:
     static const int TERRAIN_HEIGHT = 2048;
     static const int TERRAIN_WIDTH = 16384;
