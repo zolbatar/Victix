@@ -9,12 +9,12 @@ public:
     const float zooms[6] = {0.05f, 0.15f, 0.4f, 0.7f, 1.1f, 2.0f};
     const int count_zooms = sizeof(zooms) / sizeof(float);
 
-    double ConvertWorldToScreenX(double x) {
+    [[nodiscard]] double ConvertWorldToScreenX(double x) const {
         ImGuiIO &io = ImGui::GetIO();
         return (x * scale) - (offset_x * scale) + (io.DisplaySize.x / 2);
     }
 
-    double ConvertWorldToScreenY(double y) {
+    [[nodiscard]] double ConvertWorldToScreenY(double y) const {
         ImGuiIO &io = ImGui::GetIO();
         return (io.DisplaySize.y / 2) - (y * scale) + (offset_y * scale);
     }

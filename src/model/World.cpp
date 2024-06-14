@@ -7,16 +7,52 @@ World::World() {
     state.scale = state.zooms[state.zoom];
     state.offset_x = 0.0f;
     state.offset_y = 0.0f;
+
+    // Box2D
+    b2Vec2 gravity(0.0f, -10.0f);
+    world = std::make_shared<b2World>(gravity);
+
+    // Ground
+    groundBodyDef.position.Set(0.0f, -10.0f);
+    groundBody = world->CreateBody(&groundBodyDef);
+    groundBox.SetAsBox(50.0f, 10.0f);
+    groundBody->CreateFixture(&groundBox, 0.0f);
+
+    // Body
+    bodyDef.type = b2_dynamicBody;
+    bodyDef.position.Set(0.0f, 4.0f);
+    body = world->CreateBody(&bodyDef);
+    dynamicBox.SetAsBox(1.0f, 1.0f);
+    fixtureDef.shape = &dynamicBox;
+    fixtureDef.density = 1.0f;
+    fixtureDef.friction = 0.3f;
+    body->CreateFixture(&fixtureDef);
+
+    // Debug draw
+    cairoDebugDraw.SetFlags(b2Draw::e_shapeBit | b2Draw::e_jointBit | b2Draw::e_aabbBit | b2Draw::e_pairBit |
+                            b2Draw::e_centerOfMassBit);
+    world->SetDebugDraw(&cairoDebugDraw);
+
 }
 
 void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float width, float height) {
+    cairoDebugDraw.SetCR(cr);
 
     // Background
     cairo_set_source_rgb(cr, 0.05, 0.05, 0.1);
     cairo_paint(cr);
 
     // Terrain
-    terrain.Render(cr, state);
+//    terrain.Render(cr, state);
+
+    // Render debug draw using Cairo
+    cairo_save(cr);
+    ImGuiIO &io = ImGui::GetIO();
+    cairo_translate(cr, io.DisplaySize.x / 2, io.DisplaySize.y / 2);
+    cairo_scale(cr, 10.0, 10.0);
+    cairo_set_line_width(cr, 1.0);
+    world->DebugDraw();
+    cairo_restore(cr);
 
     // Write to texture and blit
     cairo_surface_flush(surface);
@@ -55,6 +91,8 @@ void World::DoZoom(int vzoom) {
 void World::Process() {
     ImGuiIO &io = ImGui::GetIO();
     ImVec2 pos = ImGui::GetMousePos();
+
+    world->Step(timeStep, velocityIterations, positionIterations);
 
     // Zoom
     if (ImGui::IsKeyPressed(ImGuiKey_Z, false)) {
