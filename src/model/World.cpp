@@ -43,14 +43,14 @@ void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float w
     cairo_paint(cr);
 
     // Terrain
-//    terrain.Render(cr, state);
+    terrain.Render(cr, state);
 
     // Render debug draw using Cairo
     cairo_save(cr);
     ImGuiIO &io = ImGui::GetIO();
     cairo_translate(cr, io.DisplaySize.x / 2, io.DisplaySize.y / 2);
-    cairo_scale(cr, 10.0, 10.0);
-    cairo_set_line_width(cr, 1.0);
+    cairo_scale(cr, 10.0, -10.0);
+    cairo_set_line_width(cr, 0.1);
     world->DebugDraw();
     cairo_restore(cr);
 
