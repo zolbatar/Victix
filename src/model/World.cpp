@@ -3,10 +3,8 @@
 
 World::World() {
     ImGuiIO &io = ImGui::GetIO();
-    state.scale_x = 0.1f;
-    state.scale_y = 0.1f;
-    state.reset_scale_x = state.scale_x;
-    state.reset_scale_y = state.scale_y;
+    state.zoom = 0;
+    state.scale = state.zooms[state.zoom];
     state.offset_x = 0.0f;
     state.offset_y = 0.0f;
 }
@@ -37,7 +35,7 @@ void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float w
     ImGui::BeginChild("Position", ImVec2(200, 200), false, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground);
     ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 255, 255));
     ImGui::Text("Position: %.2f %.2f", state.offset_x, state.offset_y);
-    ImGui::Text("Scale: %.2f %.2f", state.scale_x, state.scale_y);
+    ImGui::Text("Scale: %.2f %d", state.scale, state.zoom);
     ImGui::PopStyleColor();
     ImGui::EndChild();
 
@@ -45,22 +43,29 @@ void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float w
 	terrain.GenerateTerrain(noise);*/
 }
 
+void World::DoZoom(int vzoom) {
+    state.zoom += vzoom;
+    if (state.zoom < 0)
+        state.zoom = 0;
+    if (state.zoom >= state.count_zooms)
+        state.zoom = state.count_zooms - 1;
+    state.scale = state.zooms[state.zoom];
+}
+
 void World::Process() {
     ImGuiIO &io = ImGui::GetIO();
     ImVec2 pos = ImGui::GetMousePos();
 
     // Zoom
-    if (io.MouseWheel != 0.0f) {
-        float zoom = io.MouseWheel;
-        float zoom_adj = zoom * state.zoom_adjust;
-        if ((state.scale_x + zoom_adj) < state.max_scale_x) {
-            state.scale_x += zoom_adj;
-            if (state.scale_x < state.reset_scale_x)
-                state.scale_x = state.reset_scale_x;
-            state.scale_y += zoom_adj;
-            if (state.scale_y < state.reset_scale_y)
-                state.scale_y = state.reset_scale_y;
-        }
+    if (ImGui::IsKeyPressed(ImGuiKey_Z, false)) {
+        DoZoom(1);
+    } else if (ImGui::IsKeyPressed(ImGuiKey_X, false)) {
+        DoZoom(-1);
+    } else if (io.MouseWheel != 0.0f) {
+        if (io.MouseWheel < 0)
+            DoZoom(-1);
+        else
+            DoZoom(1);
     }
 
     // Dragging
@@ -70,7 +75,7 @@ void World::Process() {
             dragging = true;
             last_drag = drag_delta;
         } else {
-            float drag_scale = 5.0 / (1.0 + state.scale_x);
+            float drag_scale = 5.0 / (1.0 + state.scale);
             state.offset_x -= (drag_delta.x - last_drag.x) * drag_scale;
             state.offset_y += (drag_delta.y - last_drag.y) * drag_scale;
             last_drag = drag_delta;

@@ -11,6 +11,7 @@ private:
     WorldPosition state;
     ImVec2 last_drag;
     bool dragging = false;
+    void DoZoom(int vzoom);
 
 public:
     World();

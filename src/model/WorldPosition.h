@@ -4,29 +4,18 @@
 
 class WorldPosition {
 public:
-    float reset_scale_x, reset_scale_y;
-    float scale_x, scale_y, offset_x, offset_y;
-    const float zoom_adjust = 0.01f;
-    const float max_scale_x = 1.0f;
+    float scale, offset_x, offset_y;
+    int zoom = 0;
+    const float zooms[6] = {0.05f, 0.15f, 0.4f, 0.7f, 1.1f, 2.0f};
+    const int count_zooms = sizeof(zooms) / sizeof(float);
 
     double ConvertWorldToScreenX(double x) {
         ImGuiIO &io = ImGui::GetIO();
-        return (x * scale_x) - (offset_x * scale_x) + (io.DisplaySize.x / 2);
+        return (x * scale) - (offset_x * scale) + (io.DisplaySize.x / 2);
     }
 
     double ConvertWorldToScreenY(double y) {
         ImGuiIO &io = ImGui::GetIO();
-        return (io.DisplaySize.y / 2) - (y * scale_y) + (offset_y * scale_y);
+        return (io.DisplaySize.y / 2) - (y * scale) + (offset_y * scale);
     }
-
-    double ConvertScreenToWorldX(double x) {
-        ImGuiIO &io = ImGui::GetIO();
-        return ((x / scale_x) - (io.DisplaySize.x / 2) + offset_x) / scale_x;
-    }
-
-    double ConvertScreenToWorldY(double y) {
-        ImGuiIO &io = ImGui::GetIO();
-        return ((io.DisplaySize.y / 2) - (y / scale_y) + offset_y) / scale_y;
-    }
-
 };

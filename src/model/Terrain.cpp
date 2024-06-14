@@ -37,7 +37,7 @@ void Terrain::Render(cairo_t *cr, WorldPosition &pos) {
     // Sky
     cairo_rectangle(cr,
                     pos.ConvertWorldToScreenX((-TERRAIN_WIDTH / 2)), pos.ConvertWorldToScreenY(TERRAIN_HEIGHT),
-                    TERRAIN_WIDTH * pos.scale_x, TERRAIN_HEIGHT * pos.scale_y);
+                    TERRAIN_WIDTH * pos.scale, TERRAIN_HEIGHT * pos.scale);
     double sky_shade = 0.7;
     cairo_set_source_rgb(cr, 27.0 / 100.0 * sky_shade, 56.0 / 100.0 * sky_shade, 89.0 / 100.0 * sky_shade);
     cairo_fill(cr);
@@ -45,7 +45,7 @@ void Terrain::Render(cairo_t *cr, WorldPosition &pos) {
     // Sea
     cairo_rectangle(cr,
                     pos.ConvertWorldToScreenX((-TERRAIN_WIDTH / 2)), pos.ConvertWorldToScreenY(0),
-                    TERRAIN_WIDTH * pos.scale_x, TERRAIN_HEIGHT * pos.scale_y);
+                    TERRAIN_WIDTH * pos.scale, TERRAIN_HEIGHT * pos.scale);
     cairo_set_source_rgb(cr, 0.0 / 100.0, 14.12 / 100.0, 21.96 / 100.0);
     cairo_fill(cr);
 
@@ -53,12 +53,12 @@ void Terrain::Render(cairo_t *cr, WorldPosition &pos) {
     cairo_move_to(cr, pos.ConvertWorldToScreenX((-TERRAIN_WIDTH / 2)), pos.ConvertWorldToScreenY(0));
     cairo_line_to(cr, pos.ConvertWorldToScreenX((TERRAIN_WIDTH / 2)), pos.ConvertWorldToScreenY(0));
     sky_shade = 0.9;
-    cairo_set_line_width(cr, 1.0 * (1.0 + (pos.scale_x * 5.0)));
+    cairo_set_line_width(cr, 1.0 * (1.0 + (pos.scale * 5.0)));
     cairo_set_source_rgb(cr, 74.0 / 100.0 * sky_shade, 84.0 / 100.0 * sky_shade, 96.0 / 100.0 * sky_shade);
     cairo_stroke(cr);
 
     // Work out step
-    unsigned int d = next_power_of_2(1.0f / pos.scale_x);
+    unsigned int d = next_power_of_2(1.0f / pos.scale);
 
     // Do it
     for (int i = 0; i < TERRAIN_WIDTH; i += d) {
@@ -81,7 +81,7 @@ void Terrain::Render(cairo_t *cr, WorldPosition &pos) {
     // Outline
     cairo_append_path(cr, path);
     cairo_set_source_rgba(cr, 19.61 / 100.0, 80.39 / 100.0, 19.61 / 100.0, 1.0);
-    cairo_set_line_width(cr, 1.0 * (1.0 + (pos.scale_x * 5.0)));
+    cairo_set_line_width(cr, 1.0 * (1.0 + (pos.scale * 5.0)));
     cairo_stroke(cr);
     cairo_path_destroy(path);
 }
