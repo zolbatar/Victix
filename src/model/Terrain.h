@@ -7,7 +7,7 @@
 
 class Terrain {
 private:
-    const float SCALE = 2.5f;
+    const float SCALE = 1.5f;
     const float FREQ = 0.0005f;
     const int DEPTH = 3;
     std::vector<float> heights;
@@ -17,8 +17,8 @@ private:
     const double layer3[3] = {71.8 / 100.0, 69.45 / 100.0, 66.72 / 100.0};
 
 public:
-    static const int TERRAIN_HEIGHT = 500;
-    static const int TERRAIN_WIDTH = 8192;
+    static const int TERRAIN_HEIGHT = 2048;
+    static const int TERRAIN_WIDTH = 16384;
 
     Terrain();
     void Render(cairo_t *cr, WorldPosition &pos);

@@ -40,7 +40,6 @@ App::App(GLFWwindow *window) : window(window) {
     surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
     cr = cairo_create(surface);
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_BEST);
-//    cairo_scale(cr, 1.0, 1.0);
     render = Interface::CreateTexture(width, height, GL_NEAREST, nullptr);
 }
 
@@ -60,32 +59,21 @@ void App::Go() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
+        // Update things, process input etc.
+        if (world != nullptr)
+            world->Process();
+
         // Full screen window
         ImGuiViewport *main_viewport = ImGui::GetMainViewport();
         ImGui::SetNextWindowPos(main_viewport->Pos);
         ImGui::SetNextWindowSize(main_viewport->Size);
         ImGui::PushStyleColor(ImGuiCol_WindowBg, HexToImVec4(0x000000FF));
-        ImGui::Begin("Surface", NULL,
-                     ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+        ImGui::Begin("Surface", NULL, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 
         // Render world
         if (world == nullptr)
             world = std::make_unique<World>();
-        world->Render(cr);
-
-        // Write to texture and blit
-        cairo_surface_flush(surface);
-        glBindTexture(GL_TEXTURE_2D, render);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height,
-                     0, GL_BGRA, GL_UNSIGNED_BYTE,
-                     cairo_image_surface_get_data(surface));
-        ImGui::GetWindowDrawList()->AddImage(
-                reinterpret_cast<ImTextureID>(render),
-                ImVec2(0.0f, 0.0f),
-                ImVec2(width, height),
-                ImVec2(0.0f, 0.0f),
-                ImVec2(1.0f, 1.0f),
-                IM_COL32(255, 255, 255, 255));
+        world->Render(cr, surface, render, width, height);
 
         ImGui::End();
         ImGui::PopStyleColor();
@@ -101,9 +89,6 @@ void App::Go() {
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         glfwSwapBuffers(window);
-
-        // Update things, process input etc.
-        world->Process();
     }
 }
 

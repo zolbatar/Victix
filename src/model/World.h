@@ -1,5 +1,6 @@
 #pragma once
 
+#include <GLFW/glfw3.h>
 #include <cairo.h>
 #include "Terrain.h"
 #include "WorldPosition.h"
@@ -13,6 +14,6 @@ private:
 
 public:
     World();
-    void Render(cairo_t *cr);
+    void Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float width, float height);
     void Process();
 };

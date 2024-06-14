@@ -7,6 +7,7 @@
 
 int window_width = 1280;
 int window_height = 720;
+void glfw_scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 
 #if defined(IMGUI_IMPL_OPENGL_ES2)
 #include <GLES2/gl2.h>
@@ -72,6 +73,7 @@ int main() {
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
+    glfwSetScrollCallback(window, glfw_scroll_callback);
 
     App app(window);
     app.Go();
@@ -84,4 +86,11 @@ int main() {
     glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
+}
+
+void glfw_scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
+    ImGuiIO &io = ImGui::GetIO();
+    io.MouseWheelH += (float) xoffset;
+    io.MouseWheel += (float) yoffset;
+    //printf("Scroll callback called: xoffset=%.2f, yoffset=%.2f\n", xoffset, yoffset);
 }
