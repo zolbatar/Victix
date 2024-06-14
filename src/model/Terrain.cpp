@@ -34,6 +34,30 @@ void Terrain::Render(cairo_t *cr, WorldPosition &pos) {
     cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
     cairo_stroke(cr);*/
 
+    // Sky
+    cairo_rectangle(cr,
+                    pos.ConvertWorldToScreenX((-TERRAIN_WIDTH / 2)), pos.ConvertWorldToScreenY(TERRAIN_HEIGHT),
+                    TERRAIN_WIDTH * pos.scale_x, TERRAIN_HEIGHT * pos.scale_y);
+    cairo_pattern_t *pat = Interface::SetLinear(pos.ConvertWorldToScreenX(TERRAIN_WIDTH), pos.ConvertWorldToScreenY(TERRAIN_HEIGHT / 2),
+                                                TERRAIN_HEIGHT * pos.scale_y / 2, 90);
+    cairo_pattern_add_color_stop_rgb(pat, 0.0, sky1[0], sky1[1], sky1[2]);
+    cairo_pattern_add_color_stop_rgb(pat, 1.0, sky3[0], sky3[1], sky3[2]);
+    cairo_set_source(cr, pat);
+    cairo_fill(cr);
+    cairo_pattern_destroy(pat);
+
+    // Sea
+    cairo_rectangle(cr,
+                    pos.ConvertWorldToScreenX((-TERRAIN_WIDTH / 2)), pos.ConvertWorldToScreenY(0),
+                    TERRAIN_WIDTH * pos.scale_x, TERRAIN_HEIGHT * pos.scale_y);
+    pat = Interface::SetLinear(pos.ConvertWorldToScreenX(TERRAIN_WIDTH), pos.ConvertWorldToScreenY(TERRAIN_HEIGHT / 2),
+                               TERRAIN_HEIGHT * pos.scale_y / 2, 270);
+    cairo_pattern_add_color_stop_rgb(pat, 0.0, sea1[0], sea1[1], sea1[2]);
+    cairo_pattern_add_color_stop_rgb(pat, 1.0, sea3[0], sea3[1], sea3[2]);
+    cairo_set_source(cr, pat);
+    cairo_fill(cr);
+    cairo_pattern_destroy(pat);
+
     // Work out step
     unsigned int d = next_power_of_2(1.0f / pos.scale_x);
 
@@ -52,11 +76,10 @@ void Terrain::Render(cairo_t *cr, WorldPosition &pos) {
     cairo_close_path(cr);
 
     // Fill
-    cairo_pattern_t *pat = Interface::SetLinear(TERRAIN_WIDTH * pos.scale_x, TERRAIN_HEIGHT * 0.7, TERRAIN_HEIGHT, 270);
-    cairo_pattern_add_color_stop_rgb(pat, 1.0, layer1[0], layer1[1], layer1[2]);
-    cairo_pattern_add_color_stop_rgb(pat, 0.5, layer2[0], layer2[1], layer2[2]);
-    cairo_pattern_add_color_stop_rgb(pat, 0.0, layer3[0], layer3[1], layer3[2]);
-
+    pat = Interface::SetLinear(pos.ConvertWorldToScreenX(TERRAIN_WIDTH), pos.ConvertWorldToScreenY(TERRAIN_HEIGHT * 0.2),
+                               TERRAIN_HEIGHT * pos.scale_y, 90);
+    cairo_pattern_add_color_stop_rgb(pat, 0.0, layer1[0], layer1[1], layer1[2]);
+    cairo_pattern_add_color_stop_rgb(pat, 1.0, layer3[0], layer3[1], layer3[2]);
     cairo_set_source(cr, pat);
     cairo_fill(cr);
     cairo_pattern_destroy(pat);
