@@ -28,7 +28,8 @@ add_executable(${PROJECT_NAME}
         src/model/Terrain.h
         src/model/PerlinNoise.cpp
         src/model/PerlinNoise.h
-        src/ui/Interface.cpp)
+        src/ui/Interface.cpp
+        src/model/WorldPosition.h)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
         ${CMAKE_SOURCE_DIR}/src/imgui)

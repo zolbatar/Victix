@@ -45,7 +45,7 @@ App::App(GLFWwindow *window) : window(window) {
 }
 
 void App::Go() {
-    World world;
+    std::unique_ptr<World> world;
 
     while (!glfwWindowShouldClose(window)) {
         // Poll and handle events (inputs, window resize, etc.)
@@ -69,7 +69,9 @@ void App::Go() {
                      ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 
         // Render world
-        world.Render(cr);
+        if (world == nullptr)
+            world = std::make_unique<World>();
+        world->Render(cr);
 
         // Write to texture and blit
         cairo_surface_flush(surface);
@@ -99,6 +101,9 @@ void App::Go() {
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         glfwSwapBuffers(window);
+
+        // Update things, process input etc.
+        world->Process();
     }
 }
 

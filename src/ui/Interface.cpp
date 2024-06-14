@@ -52,3 +52,17 @@ GLuint Interface::CreateTexture(int _width, int _height, GLint type, const GLvoi
     printf("INTERFACE: Created texture %d.\n", texture);
     return texture;
 }
+
+cairo_pattern_t *Interface::SetLinear(double cx, double cy, double length, double degrees) {
+    // Define the angle in radians
+    double angle = degrees * 3.14159265358979323846 / 180.0;
+
+    // Calculate the start and end points of the gradient
+    double x1 = cx - length * cos(angle) / 2;
+    double y1 = cy - length * sin(angle) / 2;
+    double x2 = cx + length * cos(angle) / 2;
+    double y2 = cy + length * sin(angle) / 2;
+
+    // Create a linear gradient pattern at the specified angle
+    return cairo_pattern_create_linear(x1, y1, x2, y2);
+}

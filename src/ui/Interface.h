@@ -3,6 +3,7 @@
 #include <string>
 #include "imgui.h"
 #include <OpenGL/gl.h>
+#include <cairo.h>
 #include "backends/imgui_impl_opengl3.h"
 
 class Interface {
@@ -29,4 +30,6 @@ public:
     static GLuint LoadTexture(const std::string &filename, GLint type);
 
     static GLuint CreateTexture(int width, int height, GLint type, const GLvoid *pixels);
+
+    static cairo_pattern_t *SetLinear(double cx, double cy, double length, double degrees);
 };

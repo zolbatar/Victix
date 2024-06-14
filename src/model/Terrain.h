@@ -3,11 +3,10 @@
 #include <vector>
 #include <cairo.h>
 #include "PerlinNoise.h"
+#include "WorldPosition.h"
 
 class Terrain {
 private:
-    const int TERRAIN_HEIGHT = 500;
-    const int TERRAIN_WIDTH = 8192;
     const float SCALE = 2.5f;
     const float FREQ = 0.0005f;
     const int DEPTH = 3;
@@ -18,7 +17,10 @@ private:
     const double layer3[3] = {71.8 / 100.0, 69.45 / 100.0, 66.72 / 100.0};
 
 public:
+    static const int TERRAIN_HEIGHT = 500;
+    static const int TERRAIN_WIDTH = 8192;
+
     Terrain();
-    void Render(cairo_t *cr);
+    void Render(cairo_t *cr, WorldPosition &pos);
     void GenerateTerrain(PerlinNoise &perlin);
 };
