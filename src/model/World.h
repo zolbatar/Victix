@@ -7,7 +7,9 @@
 class World {
 private:
     Terrain terrain;
-    WorldPosition pos;
+    WorldPosition state;
+    ImVec2 last_drag;
+    bool dragging = false;
 
 public:
     World();
