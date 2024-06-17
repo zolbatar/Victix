@@ -13,14 +13,27 @@ World::World() {
     world = std::make_shared<b2World>(gravity);
 
     // Ground
+    groundBodyDef.type = b2_staticBody;
     groundBodyDef.position.Set(0.0f, -10.0f);
     groundBody = world->CreateBody(&groundBodyDef);
-    groundBox.SetAsBox(50.0f, 10.0f);
+
+    // Ground shape
+    std::vector<float> &heights = terrain.GetHeights();
+    int hsize = heights.size();
+    int hsize_half = hsize / 2;
+    b2Vec2 vertices[hsize + 2];
+    for (int i = 0; i < heights.size(); i++) {
+        float x = (i - hsize_half) * state.scale;
+        vertices[hsize - i - 1].Set(x, -heights[i] * state.scale);
+    }
+    vertices[heights.size()].Set(-hsize_half * state.scale, -Terrain::TERRAIN_HEIGHT * state.scale);
+    vertices[heights.size() + 1].Set(hsize_half * state.scale, -Terrain::TERRAIN_HEIGHT * state.scale);
+    groundBox.CreateLoop(vertices, hsize + 2);
     groundBody->CreateFixture(&groundBox, 0.0f);
 
     // Body
     bodyDef.type = b2_dynamicBody;
-    bodyDef.position.Set(0.0f, 4.0f);
+    bodyDef.position.Set(0.0f, 20.0f);
     body = world->CreateBody(&bodyDef);
     dynamicBox.SetAsBox(1.0f, 1.0f);
     fixtureDef.shape = &dynamicBox;
@@ -32,7 +45,6 @@ World::World() {
     cairoDebugDraw.SetFlags(b2Draw::e_shapeBit | b2Draw::e_jointBit | b2Draw::e_aabbBit | b2Draw::e_pairBit |
                             b2Draw::e_centerOfMassBit);
     world->SetDebugDraw(&cairoDebugDraw);
-
 }
 
 void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float width, float height) {

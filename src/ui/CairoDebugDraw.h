@@ -54,7 +54,7 @@ public:
     }
 
     void DrawTransform(const b2Transform &xf) override {
-        const float k_axisScale = 0.4f;
+        const float k_axisScale = 2.5f;
 
         cairo_set_source_rgba(cr, 1.0, 0.0, 0.0, 1.0); // Red for X axis
         cairo_move_to(cr, xf.p.x, xf.p.y);

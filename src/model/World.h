@@ -22,7 +22,7 @@ private:
     std::shared_ptr<b2World> world;
     b2BodyDef groundBodyDef;
     b2Body* groundBody;
-    b2PolygonShape groundBox;
+    b2ChainShape groundBox;
     b2BodyDef bodyDef;
     b2Body* body;
     b2PolygonShape dynamicBox;

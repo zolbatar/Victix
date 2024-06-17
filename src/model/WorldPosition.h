@@ -6,7 +6,8 @@ class WorldPosition {
 public:
     float scale, offset_x, offset_y;
     int zoom = 0;
-    const float zooms[6] = {0.05f, 0.15f, 0.4f, 0.7f, 1.1f, 2.0f};
+//    const float zooms[6] = {0.05f, 0.15f, 0.4f, 0.7f, 1.1f, 2.0f};
+    const float zooms[14] = {0.050000, 0.065926, 0.086956, 0.114754, 0.151621, 0.200000, 0.263027, 0.345659, 0.454650, 0.598524, 0.788046, 1.036124, 1.361340, 2.0};
     const int count_zooms = sizeof(zooms) / sizeof(float);
 
     [[nodiscard]] double ConvertWorldToScreenX(double x) const {
