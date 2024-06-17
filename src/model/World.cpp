@@ -118,6 +118,10 @@ void World::Process() {
     auto obj_end = std::remove_if(objects.begin(), objects.end(), [&heights](Object &obj) {
         return obj.Update(heights);
     });
+    objects.erase(obj_end, objects.end());
+
+    // Print remaining body positions
+    printf("Objects: %d\n", world->GetBodyCount());
 
     world->Step(timeStep, velocityIterations, positionIterations);
 

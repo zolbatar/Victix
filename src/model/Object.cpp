@@ -24,7 +24,7 @@ bool Object::Update(std::vector<double> &heights) {
     // Impact?
     int xa = x + Terrain::F_TERRAIN_WIDTH / 2.0;
     float diff = fabs(y - (float) heights[xa]);
-    if (diff < 5.0) {
+    if (diff < 15.0) {
         return true;
     }
 
