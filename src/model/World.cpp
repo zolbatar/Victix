@@ -55,12 +55,6 @@ World::World() {
 void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float width, float height) {
     cairoDebugDraw.SetCR(cr);
 
-    // Update
-    std::vector<double> &heights = terrain.GetHeights();
-    auto obj_end = std::remove_if(objects.begin(), objects.end(), [&heights](Object &obj) {
-        return obj.Update(heights);
-    });
-
     // Background
     cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
     cairo_paint(cr);
@@ -80,8 +74,8 @@ void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float w
     }
 
     // Render debug draw using Cairo
-/*    cairo_set_line_width(cr, 0.1);
-    world->DebugDraw();*/
+    cairo_set_line_width(cr, 0.1);
+    world->DebugDraw();
     cairo_restore(cr);
 
     // Write to texture and blit
@@ -118,6 +112,12 @@ void World::DoZoom(int vzoom) {
 void World::Process() {
     ImGuiIO &io = ImGui::GetIO();
     ImVec2 pos = ImGui::GetMousePos();
+
+    // Update
+    std::vector<double> &heights = terrain.GetHeights();
+    auto obj_end = std::remove_if(objects.begin(), objects.end(), [&heights](Object &obj) {
+        return obj.Update(heights);
+    });
 
     world->Step(timeStep, velocityIterations, positionIterations);
 
