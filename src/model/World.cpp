@@ -23,17 +23,17 @@ World::World() {
     int hsize_half = hsize / 2;
     b2Vec2 vertices[hsize + 2];
     for (int i = 0; i < heights.size(); i++) {
-        float x = (i - hsize_half) * state.scale;
-        vertices[hsize - i - 1].Set(x, -heights[i] * state.scale);
+        float x = (i - hsize_half);
+        vertices[hsize - i - 1].Set(x, heights[i]);
     }
-    vertices[heights.size()].Set(-hsize_half * state.scale, -Terrain::TERRAIN_HEIGHT * state.scale);
-    vertices[heights.size() + 1].Set(hsize_half * state.scale, -Terrain::TERRAIN_HEIGHT * state.scale);
+    vertices[heights.size()].Set(-hsize_half, -Terrain::TERRAIN_HEIGHT);
+    vertices[heights.size() + 1].Set(hsize_half, -Terrain::TERRAIN_HEIGHT);
     groundBox.CreateLoop(vertices, hsize + 2);
     groundBody->CreateFixture(&groundBox, 0.0f);
 
     // Body
     bodyDef.type = b2_dynamicBody;
-    bodyDef.position.Set(0.0f, 20.0f);
+    bodyDef.position.Set(0.0f, heights[hsize_half] +  20);
     body = world->CreateBody(&bodyDef);
     dynamicBox.SetAsBox(1.0f, 1.0f);
     fixtureDef.shape = &dynamicBox;
@@ -52,6 +52,7 @@ void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float w
 
     // Background
     cairo_set_source_rgb(cr, 0.05, 0.05, 0.1);
+//    cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
     cairo_paint(cr);
 
     // Terrain
@@ -61,8 +62,8 @@ void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float w
     cairo_save(cr);
     ImGuiIO &io = ImGui::GetIO();
     cairo_translate(cr, io.DisplaySize.x / 2, io.DisplaySize.y / 2);
-    cairo_scale(cr, 10.0, -10.0);
-    cairo_set_line_width(cr, 0.1);
+    cairo_scale(cr, state.scale, -state.scale);
+    cairo_set_line_width(cr, 1.5);
     world->DebugDraw();
     cairo_restore(cr);
 
