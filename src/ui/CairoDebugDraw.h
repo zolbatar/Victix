@@ -9,9 +9,9 @@ public:
 
     void DrawPolygon(const b2Vec2 *vertices, int32 vertexCount, const b2Color &color) override {
         cairo_set_source_rgba(cr, color.r, color.g, color.b, color.a);
-        cairo_move_to(cr, vertices[0].x, vertices[0].y);
+        cairo_move_to(cr, vertices[0].x * m_scale, vertices[0].y * m_scale);
         for (int i = 1; i < vertexCount; ++i) {
-            cairo_line_to(cr, vertices[i].x, vertices[i].y);
+            cairo_line_to(cr, vertices[i].x * m_scale, vertices[i].y * m_scale);
         }
         cairo_close_path(cr);
         cairo_stroke(cr);
@@ -73,6 +73,9 @@ public:
         cairo_fill(cr);
     }
 
+    void SetScale(float scale) { m_scale = scale; }
+
 private:
     cairo_t *cr;
+    float m_scale = 30.0f; // Default scale: 1 meter = 30 pixels
 };
