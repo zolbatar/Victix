@@ -18,7 +18,7 @@ World::World() {
     groundBody = world->CreateBody(&groundBodyDef);
 
     // Ground shape
-    std::vector<float> &heights = terrain.GetHeights();
+    std::vector<double> &heights = terrain.GetHeights();
     int hsize = heights.size();
     int hsize_half = hsize / 2;
     b2Vec2 vertices[hsize + 2];
@@ -33,7 +33,7 @@ World::World() {
 
     // Body
     bodyDef.type = b2_dynamicBody;
-    bodyDef.position.Set(0.0f, heights[hsize_half] +  20);
+    bodyDef.position.Set(0.0f, heights[hsize_half] + 20);
     body = world->CreateBody(&bodyDef);
     dynamicBox.SetAsBox(1.0f, 1.0f);
     fixtureDef.shape = &dynamicBox;
@@ -56,14 +56,16 @@ void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float w
     cairo_paint(cr);
 
     // Terrain
+    cairo_save(cr);
+    ImGuiIO &io = ImGui::GetIO();
+    cairo_translate(cr,
+                    io.DisplaySize.x / 2 - (state.offset_x * state.scale),
+                    io.DisplaySize.y / 2 + (state.offset_y * state.scale));
+    cairo_scale(cr, state.scale, -state.scale);
     terrain.Render(cr, state);
 
     // Render debug draw using Cairo
-    cairo_save(cr);
-    ImGuiIO &io = ImGui::GetIO();
-    cairo_translate(cr, io.DisplaySize.x / 2, io.DisplaySize.y / 2);
-    cairo_scale(cr, state.scale, -state.scale);
-    cairo_set_line_width(cr, 1.5);
+    cairo_set_line_width(cr, 0.1);
     world->DebugDraw();
     cairo_restore(cr);
 
@@ -126,7 +128,7 @@ void World::Process() {
             dragging = true;
             last_drag = drag_delta;
         } else {
-            float drag_scale = 5.0 / (1.0 + state.scale);
+            float drag_scale = 1.0 / state.scale;
             state.offset_x -= (drag_delta.x - last_drag.x) * drag_scale;
             state.offset_y += (drag_delta.y - last_drag.y) * drag_scale;
             last_drag = drag_delta;

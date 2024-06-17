@@ -13,8 +13,7 @@ void Terrain::GenerateTerrain(PerlinNoise &perlin) {
     heights.resize(TERRAIN_WIDTH);
     float y = dis(gen) * TERRAIN_WIDTH;
     for (int x = 0; x < TERRAIN_WIDTH; ++x) {
-        double height = perlin.noise(x, y, FREQ, DEPTH) * SCALE * TERRAIN_HEIGHT;
-        heights[x] = (float) height;
+        heights[x] = perlin.noise(x, y, FREQ, DEPTH) * SCALE * TERRAIN_HEIGHT;
     }
 }
 
@@ -26,52 +25,25 @@ Terrain::Terrain() {
 void Terrain::Render(cairo_t *cr, WorldPosition &pos) {
     ImGuiIO &io = ImGui::GetIO();
 
-    // Debug centre crosshair
-/*    cairo_move_to(cr, 0, io.DisplaySize.y / 2);
-    cairo_line_to(cr, io.DisplaySize.x, io.DisplaySize.y / 2);
-    cairo_move_to(cr, io.DisplaySize.x / 2, 0);
-    cairo_line_to(cr, io.DisplaySize.x / 2, io.DisplaySize.y);
-    cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
-    cairo_stroke(cr);*/
-
     // Sky
-    cairo_rectangle(cr,
-                    pos.ConvertWorldToScreenX((-TERRAIN_WIDTH / 2)), pos.ConvertWorldToScreenY(TERRAIN_HEIGHT),
-                    TERRAIN_WIDTH * pos.scale, TERRAIN_HEIGHT * pos.scale);
+    cairo_rectangle(cr, -TERRAIN_WIDTH / 2, -TERRAIN_HEIGHT, TERRAIN_WIDTH, TERRAIN_HEIGHT * 2);
     double sky_shade = 0.7;
     cairo_set_source_rgb(cr, 27.0 / 100.0 * sky_shade, 56.0 / 100.0 * sky_shade, 89.0 / 100.0 * sky_shade);
     cairo_fill(cr);
-
-    // Sea
-    cairo_rectangle(cr,
-                    pos.ConvertWorldToScreenX((-TERRAIN_WIDTH / 2)), pos.ConvertWorldToScreenY(0),
-                    TERRAIN_WIDTH * pos.scale, TERRAIN_HEIGHT * pos.scale);
-    cairo_set_source_rgb(cr, 0.0 / 100.0, 14.12 / 100.0, 21.96 / 100.0);
-    cairo_fill(cr);
-
-    // Sea line
-    cairo_move_to(cr, pos.ConvertWorldToScreenX((-TERRAIN_WIDTH / 2)), pos.ConvertWorldToScreenY(0));
-    cairo_line_to(cr, pos.ConvertWorldToScreenX((TERRAIN_WIDTH / 2)), pos.ConvertWorldToScreenY(0));
-    sky_shade = 0.9;
-    cairo_set_line_width(cr, 1.0 * (1.0 + (pos.scale * 5.0)));
-    cairo_set_source_rgb(cr, 74.0 / 100.0 * sky_shade, 84.0 / 100.0 * sky_shade, 96.0 / 100.0 * sky_shade);
-    cairo_stroke(cr);
 
     // Work out step
     unsigned int d = next_power_of_2(1.0f / pos.scale);
 
     // Do it
     for (int i = 0; i < TERRAIN_WIDTH; i += d) {
-        double this_x = pos.ConvertWorldToScreenX(i - Terrain::TERRAIN_WIDTH / 2);
-        double this_y = pos.ConvertWorldToScreenY(heights[i]);
         if (i == 0)
-            cairo_move_to(cr, this_x, this_y);
+            cairo_move_to(cr, i - Terrain::TERRAIN_WIDTH / 2, heights[i]);
         else
-            cairo_line_to(cr, this_x, this_y);
+            cairo_line_to(cr, i - Terrain::TERRAIN_WIDTH / 2, heights[i]);
     }
     cairo_path_t *path = cairo_copy_path(cr); // Save for outline
-    cairo_line_to(cr, pos.ConvertWorldToScreenX((TERRAIN_WIDTH / 2)), pos.ConvertWorldToScreenY(-TERRAIN_HEIGHT));
-    cairo_line_to(cr, pos.ConvertWorldToScreenX(-(TERRAIN_WIDTH / 2)), pos.ConvertWorldToScreenY(-TERRAIN_HEIGHT));
+    cairo_line_to(cr, (TERRAIN_WIDTH / 2), -TERRAIN_HEIGHT);
+    cairo_line_to(cr, -(TERRAIN_WIDTH / 2), -TERRAIN_HEIGHT);
     cairo_close_path(cr);
 
     // Fill
@@ -81,7 +53,7 @@ void Terrain::Render(cairo_t *cr, WorldPosition &pos) {
     // Outline
     cairo_append_path(cr, path);
     cairo_set_source_rgba(cr, 19.61 / 100.0, 80.39 / 100.0, 19.61 / 100.0, 1.0);
-    cairo_set_line_width(cr, 1.0 * (1.0 + (pos.scale * 5.0)));
+    cairo_set_line_width(cr, 0.25);
     cairo_stroke(cr);
     cairo_path_destroy(path);
 }

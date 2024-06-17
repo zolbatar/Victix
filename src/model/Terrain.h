@@ -8,15 +8,15 @@
 class Terrain {
 private:
     const float SCALE = 1.0f;
-    const float FREQ = 0.001f;
+    const float FREQ = 0.01f;
     const int DEPTH = 3;
-    std::vector<float> heights;
+    std::vector<double> heights;
 
 public:
-    static const int TERRAIN_HEIGHT = 2048;
-    static const int TERRAIN_WIDTH = 16384;
+    static const int TERRAIN_HEIGHT = 64;
+    static const int TERRAIN_WIDTH = 256;
 
-    std::vector<float> &GetHeights() { return heights; }
+    std::vector<double> &GetHeights() { return heights; }
 
     Terrain();
     void Render(cairo_t *cr, WorldPosition &pos);

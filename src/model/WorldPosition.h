@@ -7,16 +7,7 @@ public:
     float scale, offset_x, offset_y;
     int zoom = 0;
 //    const float zooms[6] = {0.05f, 0.15f, 0.4f, 0.7f, 1.1f, 2.0f};
-    const float zooms[14] = {0.050000, 0.065926, 0.086956, 0.114754, 0.151621, 0.200000, 0.263027, 0.345659, 0.454650, 0.598524, 0.788046, 1.036124, 1.361340, 2.0};
+    const float zooms[5] = {2.0, 4.0, 8.0, 16.0, 32.0};
+//    const float zooms[14] = {0.051, 0.065, 0.086, 0.114, 0.151, 0.200, 0.263, 0.345, 0.454, 0.598, 0.788, 1.036, 1.361, 2.0};
     const int count_zooms = sizeof(zooms) / sizeof(float);
-
-    [[nodiscard]] double ConvertWorldToScreenX(double x) const {
-        ImGuiIO &io = ImGui::GetIO();
-        return (x * scale) - (offset_x * scale) + (io.DisplaySize.x / 2);
-    }
-
-    [[nodiscard]] double ConvertWorldToScreenY(double y) const {
-        ImGuiIO &io = ImGui::GetIO();
-        return (io.DisplaySize.y / 2) - (y * scale) + (offset_y * scale);
-    }
 };
