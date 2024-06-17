@@ -6,15 +6,18 @@
 
 class Object {
 private:
+    std::shared_ptr<b2World> world;
     b2BodyDef bodyDef;
     b2PolygonShape dynamicBox;
     b2FixtureDef fixtureDef;
     b2Body *body;
 
 public:
-    Object(const std::shared_ptr<b2World> &world, float x, float y);
+    Object(const std::shared_ptr<b2World>& world, float x, float y);
+
+    ~Object();
 
     void Render(cairo_t *cr) const;
 
-    bool Update(const std::shared_ptr<b2World> &world, std::vector<double> &heights);
+    bool Update(std::vector<double> &heights);
 };

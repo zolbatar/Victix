@@ -57,8 +57,8 @@ void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float w
 
     // Update
     std::vector<double> &heights = terrain.GetHeights();
-    auto obj_end = std::remove_if(objects.begin(), objects.end(), [this, &heights](Object &obj) {
-        return obj.Update(world, heights);
+    auto obj_end = std::remove_if(objects.begin(), objects.end(), [&heights](Object &obj) {
+        return obj.Update(heights);
     });
 
     // Background

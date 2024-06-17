@@ -2,7 +2,7 @@
 #include "Object.h"
 #include "Terrain.h"
 
-Object::Object(const std::shared_ptr<b2World> &world, float x, float y) {
+Object::Object(const std::shared_ptr<b2World> &world, float x, float y) : world(world) {
     bodyDef.type = b2_dynamicBody;
     bodyDef.position.Set(x, y);
     body = world->CreateBody(&bodyDef);
@@ -13,16 +13,18 @@ Object::Object(const std::shared_ptr<b2World> &world, float x, float y) {
     body->CreateFixture(&fixtureDef);
 }
 
-bool Object::Update(const std::shared_ptr<b2World> &world, std::vector<double> &heights) {
+Object::~Object() {
+    world->DestroyBody(body);
+}
+
+bool Object::Update(std::vector<double> &heights) {
     float x = body->GetPosition().x;
     float y = body->GetPosition().y;
 
     // Impact?
     int xa = x + Terrain::F_TERRAIN_WIDTH / 2.0;
     float diff = fabs(y - (float) heights[xa]);
-    if (diff < 1.5) {
-//        body->DestroyFixture(fixtureDef);
-        world->DestroyBody(body);
+    if (diff < 5.0) {
         return true;
     }
 
