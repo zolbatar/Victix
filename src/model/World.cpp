@@ -1,5 +1,10 @@
+#include <random>
 #include "imgui.h"
 #include "World.h"
+
+static std::random_device rd;  // Random device to seed the generator
+static std::mt19937 gen(rd()); // Standard Mersenne Twister engine seeded with rd()
+static std::uniform_real_distribution<> dis(0.0, 50.0); // Uniform distribution in the range [0, 1)
 
 World::World() {
     ImGuiIO &io = ImGui::GetIO();
@@ -32,14 +37,19 @@ World::World() {
     groundBody->CreateFixture(&groundBox, 0.0f);
 
     // Body
-    bodyDef.type = b2_dynamicBody;
-    bodyDef.position.Set(0.0f, heights[hsize_half] + 20);
-    body = world->CreateBody(&bodyDef);
-    dynamicBox.SetAsBox(1.0f, 1.0f);
-    fixtureDef.shape = &dynamicBox;
-    fixtureDef.density = 1.0f;
-    fixtureDef.friction = 0.3f;
-    body->CreateFixture(&fixtureDef);
+    for (unsigned int i = 0; i < Terrain::TERRAIN_WIDTH; i += 10) {
+        b2BodyDef bodyDef;
+        bodyDef.type = b2_dynamicBody;
+        bodyDef.position.Set(i - (Terrain::F_TERRAIN_WIDTH / 2), (float) heights[i] + 5 + dis(gen));
+        body = world->CreateBody(&bodyDef);
+        b2PolygonShape dynamicBox;
+        dynamicBox.SetAsBox(1.0f, 1.0f);
+        b2FixtureDef fixtureDef;
+        fixtureDef.shape = &dynamicBox;
+        fixtureDef.density = 1.0f;
+        fixtureDef.friction = 0.3f;
+        body->CreateFixture(&fixtureDef);
+    }
 
     // Debug draw
     cairoDebugDraw.SetFlags(b2Draw::e_shapeBit | b2Draw::e_jointBit | b2Draw::e_aabbBit | b2Draw::e_pairBit |
@@ -51,8 +61,7 @@ void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float w
     cairoDebugDraw.SetCR(cr);
 
     // Background
-    cairo_set_source_rgb(cr, 0.05, 0.05, 0.1);
-//    cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
+    cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
     cairo_paint(cr);
 
     // Terrain

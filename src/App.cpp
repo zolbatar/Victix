@@ -68,7 +68,8 @@ void App::Go() {
         ImGui::SetNextWindowPos(main_viewport->Pos);
         ImGui::SetNextWindowSize(main_viewport->Size);
         ImGui::PushStyleColor(ImGuiCol_WindowBg, HexToImVec4(0x000000FF));
-        ImGui::Begin("Surface", NULL, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+        ImGui::Begin("Surface", nullptr,
+                     ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 
         // Render world
         if (world == nullptr)

@@ -23,10 +23,7 @@ private:
     b2BodyDef groundBodyDef;
     b2Body *groundBody;
     b2ChainShape groundBox;
-    b2BodyDef bodyDef;
     b2Body *body;
-    b2PolygonShape dynamicBox;
-    b2FixtureDef fixtureDef;
     CairoDebugDraw cairoDebugDraw;
 
     void DoZoom(int vzoom);

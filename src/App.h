@@ -13,7 +13,7 @@ private:
     cairo_surface_t *surface;
     cairo_t *cr;
     GLuint render;
-    float width, height;
+    int width, height;
     const float ui_font_size = 16.0f;
 
 public:
