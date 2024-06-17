@@ -18,8 +18,9 @@ World::World() {
     world = std::make_shared<b2World>(gravity);
 
     // Ground
+    b2BodyDef groundBodyDef;
     groundBodyDef.type = b2_staticBody;
-    groundBodyDef.position.Set(0.0f, -10.0f);
+    groundBodyDef.position.Set(0.0f, 0.0f);
     groundBody = world->CreateBody(&groundBodyDef);
 
     // Ground shape
@@ -28,27 +29,18 @@ World::World() {
     int hsize_half = hsize / 2;
     b2Vec2 vertices[hsize + 2];
     for (int i = 0; i < heights.size(); i++) {
-        float x = (i - hsize_half);
+        float x = i - hsize_half;
         vertices[hsize - i - 1].Set(x, heights[i]);
     }
     vertices[heights.size()].Set(-hsize_half, -Terrain::TERRAIN_HEIGHT);
     vertices[heights.size() + 1].Set(hsize_half, -Terrain::TERRAIN_HEIGHT);
+    b2ChainShape groundBox;
     groundBox.CreateLoop(vertices, hsize + 2);
     groundBody->CreateFixture(&groundBox, 0.0f);
 
     // Body
     for (unsigned int i = 0; i < Terrain::TERRAIN_WIDTH; i += 10) {
-        b2BodyDef bodyDef;
-        bodyDef.type = b2_dynamicBody;
-        bodyDef.position.Set(i - (Terrain::F_TERRAIN_WIDTH / 2), (float) heights[i] + 5 + dis(gen));
-        body = world->CreateBody(&bodyDef);
-        b2PolygonShape dynamicBox;
-        dynamicBox.SetAsBox(1.0f, 1.0f);
-        b2FixtureDef fixtureDef;
-        fixtureDef.shape = &dynamicBox;
-        fixtureDef.density = 1.0f;
-        fixtureDef.friction = 0.3f;
-        body->CreateFixture(&fixtureDef);
+        objects.emplace_back(world, i - (Terrain::F_TERRAIN_WIDTH / 2), (float) heights[i] + 5 + dis(gen));
     }
 
     // Debug draw
@@ -73,9 +65,14 @@ void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float w
     cairo_scale(cr, state.scale, -state.scale);
     terrain.Render(cr, state);
 
+    // Objects
+    for (auto &obj: objects) {
+        obj.Render(cr);
+    }
+
     // Render debug draw using Cairo
-    cairo_set_line_width(cr, 0.1);
-    world->DebugDraw();
+/*    cairo_set_line_width(cr, 0.1);
+    world->DebugDraw();*/
     cairo_restore(cr);
 
     // Write to texture and blit

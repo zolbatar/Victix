@@ -31,7 +31,9 @@ add_executable(${PROJECT_NAME}
         src/ui/Interface.cpp
         src/model/WorldPosition.h
         src/ui/CairoDebugDraw.h
-        src/ui/CairoDebugDraw.h)
+        src/ui/CairoDebugDraw.h
+        src/model/Object.cpp
+        src/model/Object.h)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
         ${CMAKE_SOURCE_DIR}/src/imgui)

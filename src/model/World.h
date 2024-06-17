@@ -1,5 +1,6 @@
 #pragma once
 
+#include <list>
 #include <memory>
 #include <GLFW/glfw3.h>
 #include <cairo.h>
@@ -7,6 +8,7 @@
 #include "WorldPosition.h"
 #include "../ui/CairoDebugDraw.h"
 #include <box2d/box2d.h>
+#include "Object.h"
 
 class World {
 private:
@@ -20,11 +22,9 @@ private:
     const int32 velocityIterations = 6;
     const int32 positionIterations = 2;
     std::shared_ptr<b2World> world;
-    b2BodyDef groundBodyDef;
     b2Body *groundBody;
-    b2ChainShape groundBox;
-    b2Body *body;
     CairoDebugDraw cairoDebugDraw;
+    std::list<Object> objects;
 
     void DoZoom(int vzoom);
 
