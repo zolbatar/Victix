@@ -26,8 +26,8 @@ World::World() {
 
     // Ground shape
     std::vector<double> &heights = terrain.GetHeights();
-    int hsize = heights.size();
-    int hsize_half = hsize / 2;
+    int hsize = (int)heights.size();
+    float hsize_half = heights.size() / 2;
     b2Vec2 vertices[hsize + 2];
     for (int i = 0; i < heights.size(); i++) {
         float x = i - hsize_half;
@@ -56,8 +56,9 @@ void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float w
     cairoDebugDraw.SetCR(cr);
 
     // Update
-    auto obj_end = std::remove_if(objects.begin(), objects.end(), [](Object &obj) {
-        return obj.Update();
+    std::vector<double> &heights = terrain.GetHeights();
+    auto obj_end = std::remove_if(objects.begin(), objects.end(), [this, &heights](Object &obj) {
+        return obj.Update(world, heights);
     });
 
     // Background

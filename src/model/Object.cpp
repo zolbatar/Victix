@@ -1,3 +1,4 @@
+#include <cmath>
 #include "Object.h"
 #include "Terrain.h"
 
@@ -5,16 +6,26 @@ Object::Object(const std::shared_ptr<b2World> &world, float x, float y) {
     bodyDef.type = b2_dynamicBody;
     bodyDef.position.Set(x, y);
     body = world->CreateBody(&bodyDef);
-    dynamicBox.SetAsBox(1.0f, 1.0f);
+    dynamicBox.SetAsBox(0.5f, 0.5f);
     fixtureDef.shape = &dynamicBox;
     fixtureDef.density = 1.0f;
     fixtureDef.friction = 0.3f;
     body->CreateFixture(&fixtureDef);
 }
 
-bool Object::Update() {
+bool Object::Update(const std::shared_ptr<b2World> &world, std::vector<double> &heights) {
     float x = body->GetPosition().x;
     float y = body->GetPosition().y;
+
+    // Impact?
+    int xa = x + Terrain::F_TERRAIN_WIDTH / 2.0;
+    float diff = fabs(y - (float) heights[xa]);
+    if (diff < 1.5) {
+//        body->DestroyFixture(fixtureDef);
+        world->DestroyBody(body);
+        return true;
+    }
+
     if (x < -Terrain::F_TERRAIN_WIDTH / 2 || x >= Terrain::F_TERRAIN_WIDTH / 2)
         return true;
     if (y < -Terrain::F_TERRAIN_HEIGHT / 2)
@@ -25,7 +36,8 @@ bool Object::Update() {
 void Object::Render(cairo_t *cr) const {
     float x = body->GetPosition().x;
     float y = body->GetPosition().y;
-    cairo_set_source_rgb(cr, 0.0, 0.0, 0.0);
-    cairo_arc(cr, x, y, 1.0, 0, 2 * M_PI);
+    cairo_set_source_rgb(cr, 0.0, 0.0, 0.0);\
+    cairo_rectangle(cr, x - 0.5, y - 0.5, 1.0, 1.0);
+//    cairo_arc(cr, x, y, 1.0, 0, 2 * M_PI);
     cairo_fill(cr);
 }

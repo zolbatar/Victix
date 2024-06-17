@@ -16,5 +16,5 @@ public:
 
     void Render(cairo_t *cr) const;
 
-    bool Update();
+    bool Update(const std::shared_ptr<b2World> &world, std::vector<double> &heights);
 };
