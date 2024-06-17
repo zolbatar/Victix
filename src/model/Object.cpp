@@ -1,4 +1,5 @@
 #include "Object.h"
+#include "Terrain.h"
 
 Object::Object(const std::shared_ptr<b2World> &world, float x, float y) {
     bodyDef.type = b2_dynamicBody;
@@ -9,6 +10,16 @@ Object::Object(const std::shared_ptr<b2World> &world, float x, float y) {
     fixtureDef.density = 1.0f;
     fixtureDef.friction = 0.3f;
     body->CreateFixture(&fixtureDef);
+}
+
+bool Object::Update() {
+    float x = body->GetPosition().x;
+    float y = body->GetPosition().y;
+    if (x < -Terrain::F_TERRAIN_WIDTH / 2 || x >= Terrain::F_TERRAIN_WIDTH / 2)
+        return true;
+    if (y < -Terrain::F_TERRAIN_HEIGHT / 2)
+        return true;
+    return false;
 }
 
 void Object::Render(cairo_t *cr) const {

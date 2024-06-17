@@ -15,4 +15,6 @@ public:
     Object(const std::shared_ptr<b2World> &world, float x, float y);
 
     void Render(cairo_t *cr) const;
+
+    bool Update();
 };

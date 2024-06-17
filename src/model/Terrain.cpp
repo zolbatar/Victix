@@ -27,12 +27,7 @@ void Terrain::Render(cairo_t *cr, WorldPosition &pos) {
 
     // Sky
     cairo_rectangle(cr, -F_TERRAIN_WIDTH / 2.0, -F_TERRAIN_HEIGHT, F_TERRAIN_WIDTH, F_TERRAIN_HEIGHT * 2.0);
-    cairo_set_source_rgb(cr, 0.8, 0.8, 0.8);
     cairo_fill(cr);
-
-    // Clip to render area
-    cairo_rectangle(cr, -F_TERRAIN_WIDTH / 2.0, -F_TERRAIN_HEIGHT, F_TERRAIN_WIDTH, F_TERRAIN_HEIGHT * 2.0);
-    cairo_clip(cr);
 
     // Work out step
     unsigned int d = next_power_of_2(1.0f / pos.scale);
@@ -45,10 +40,10 @@ void Terrain::Render(cairo_t *cr, WorldPosition &pos) {
             cairo_line_to(cr, i - F_TERRAIN_WIDTH / 2, heights[i]);
     }
     cairo_path_t *path = cairo_copy_path(cr); // Save for outline
-    cairo_line_to(cr, (F_TERRAIN_WIDTH / 2), F_TERRAIN_HEIGHT);
-    cairo_line_to(cr, -(F_TERRAIN_WIDTH / 2), F_TERRAIN_HEIGHT);
+    cairo_line_to(cr, (F_TERRAIN_WIDTH / 2), -F_TERRAIN_HEIGHT);
+    cairo_line_to(cr, -(F_TERRAIN_WIDTH / 2), -F_TERRAIN_HEIGHT);
     cairo_close_path(cr);
-    cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
+    cairo_set_source_rgb(cr, 0.8, 0.8, 0.8);
     cairo_fill(cr);
 
     // Outline

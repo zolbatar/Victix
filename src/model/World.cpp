@@ -4,7 +4,8 @@
 
 static std::random_device rd;  // Random device to seed the generator
 static std::mt19937 gen(rd()); // Standard Mersenne Twister engine seeded with rd()
-static std::uniform_real_distribution<> dis(0.0, 50.0); // Uniform distribution in the range [0, 1)
+static std::uniform_real_distribution<> dis(0.0, 150.0);
+static std::uniform_int_distribution<> disi(0, Terrain::TERRAIN_WIDTH);
 
 World::World() {
     ImGuiIO &io = ImGui::GetIO();
@@ -39,8 +40,10 @@ World::World() {
     groundBody->CreateFixture(&groundBox, 0.0f);
 
     // Body
-    for (unsigned int i = 0; i < Terrain::TERRAIN_WIDTH; i += 10) {
-        objects.emplace_back(world, i - (Terrain::F_TERRAIN_WIDTH / 2), (float) heights[i] + 5 + dis(gen));
+    for (unsigned int i = 0; i < 1000; i++) {
+        int idx = disi(gen);
+        int x = idx - Terrain::TERRAIN_WIDTH / 2;
+        objects.emplace_back(world, x, (float) heights[idx] + 5 + dis(gen));
     }
 
     // Debug draw
@@ -51,6 +54,11 @@ World::World() {
 
 void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float width, float height) {
     cairoDebugDraw.SetCR(cr);
+
+    // Update
+    auto obj_end = std::remove_if(objects.begin(), objects.end(), [](Object &obj) {
+        return obj.Update();
+    });
 
     // Background
     cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
@@ -95,9 +103,6 @@ void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float w
     ImGui::Text("Scale: %.2f %d", state.scale, state.zoom);
     ImGui::PopStyleColor();
     ImGui::EndChild();
-
-/*	PerlinNoise noise;
-	terrain.GenerateTerrain(noise);*/
 }
 
 void World::DoZoom(int vzoom) {

@@ -9,12 +9,12 @@ class Terrain {
 private:
     const float SCALE = 1.0f;
     const int DEPTH = 3;
-    const float FREQ = 0.01f;
+    const float FREQ = 0.025f;
     std::vector<double> heights;
 
 public:
     static const int TERRAIN_HEIGHT = 64;
-    static const int TERRAIN_WIDTH = 512;
+    static const int TERRAIN_WIDTH = 1024;
     constexpr static const double F_TERRAIN_HEIGHT = (double) TERRAIN_HEIGHT;
     constexpr static const double F_TERRAIN_WIDTH = (double) TERRAIN_WIDTH;
 
