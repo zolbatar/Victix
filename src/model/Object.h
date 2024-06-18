@@ -6,14 +6,12 @@
 
 class Object {
 private:
-    std::shared_ptr<b2World> world;
-    b2BodyDef bodyDef;
-    b2PolygonShape dynamicBox;
-    b2FixtureDef fixtureDef;
-    b2Body *body;
+    b2Body *body = nullptr;
 
 public:
-    Object(const std::shared_ptr<b2World>& world, float x, float y);
+    Object(float x, float y);
+
+    Object(const Object&) = delete;
 
     ~Object();
 

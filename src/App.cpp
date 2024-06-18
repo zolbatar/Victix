@@ -4,8 +4,6 @@
 #include "backends/imgui_impl_glfw.h"
 #include "model/World.h"
 
-ImVec4 HexToImVec4(uint32_t hex);
-
 App::App(GLFWwindow *window) : window(window) {
     ImGuiIO &io = ImGui::GetIO();
 
@@ -67,7 +65,7 @@ void App::Go() {
         ImGuiViewport *main_viewport = ImGui::GetMainViewport();
         ImGui::SetNextWindowPos(main_viewport->Pos);
         ImGui::SetNextWindowSize(main_viewport->Size);
-        ImGui::PushStyleColor(ImGuiCol_WindowBg, HexToImVec4(0x000000FF));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 8));
         ImGui::Begin("Surface", nullptr,
                      ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 
@@ -77,7 +75,7 @@ void App::Go() {
         world->Render(cr, surface, render, width, height);
 
         ImGui::End();
-        ImGui::PopStyleColor();
+        ImGui::PopStyleVar();
 
         if (show_demo_window)
             ImGui::ShowDemoWindow(&show_demo_window);
@@ -103,5 +101,5 @@ ImVec4 HexToImVec4(uint32_t hex) {
     float g = ((hex >> 16) & 0xFF) / 255.0f;
     float b = ((hex >> 8) & 0xFF) / 255.0f;
     float a = (hex & 0xFF) / 255.0f;
-    return ImVec4(r, g, b, a);
+    return {r, g, b, a};
 }

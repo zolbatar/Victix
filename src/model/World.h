@@ -21,7 +21,6 @@ private:
     const float timeStep = 1.0f / 60.0f;
     const int32 velocityIterations = 6;
     const int32 positionIterations = 2;
-    std::shared_ptr<b2World> world;
     b2Body *groundBody;
     CairoDebugDraw cairoDebugDraw;
     std::list<Object> objects;

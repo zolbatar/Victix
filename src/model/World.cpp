@@ -2,6 +2,7 @@
 #include "imgui.h"
 #include "World.h"
 
+std::unique_ptr<b2World> world;
 static std::random_device rd;  // Random device to seed the generator
 static std::mt19937 gen(rd()); // Standard Mersenne Twister engine seeded with rd()
 static std::uniform_real_distribution<> dis(0.0, 150.0);
@@ -16,7 +17,7 @@ World::World() {
 
     // Box2D
     b2Vec2 gravity(0.0f, -10.0f);
-    world = std::make_shared<b2World>(gravity);
+    world = std::make_unique<b2World>(gravity);
 
     // Ground
     b2BodyDef groundBodyDef;
@@ -26,7 +27,7 @@ World::World() {
 
     // Ground shape
     std::vector<double> &heights = terrain.GetHeights();
-    int hsize = (int)heights.size();
+    int hsize = (int) heights.size();
     float hsize_half = heights.size() / 2;
     b2Vec2 vertices[hsize + 2];
     for (int i = 0; i < heights.size(); i++) {
@@ -40,10 +41,10 @@ World::World() {
     groundBody->CreateFixture(&groundBox, 0.0f);
 
     // Body
-    for (unsigned int i = 0; i < 1000; i++) {
+    for (unsigned int i = 0; i < 250; i++) {
         int idx = disi(gen);
         int x = idx - Terrain::TERRAIN_WIDTH / 2;
-        objects.emplace_back(world, x, (float) heights[idx] + 5 + dis(gen));
+        objects.emplace_back(x, (float) heights[idx] + 5 + dis(gen));
     }
 
     // Debug draw
@@ -74,8 +75,8 @@ void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float w
     }
 
     // Render debug draw using Cairo
-    cairo_set_line_width(cr, 0.1);
-    world->DebugDraw();
+/*    cairo_set_line_width(cr, 0.1);
+    world->DebugDraw();*/
     cairo_restore(cr);
 
     // Write to texture and blit
@@ -92,10 +93,12 @@ void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float w
             ImVec2(1.0f, 1.0f),
             IM_COL32(255, 255, 255, 255));
 
-    ImGui::BeginChild("Position", ImVec2(200, 200), false, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground);
-    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 255, 255));
+    ImGui::BeginChild("Position", ImVec2(200, 200), false,
+                      ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration);
+    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 0, 0, 255));
     ImGui::Text("Position: %.2f %.2f", state.offset_x, state.offset_y);
     ImGui::Text("Scale: %.2f %d", state.scale, state.zoom);
+    ImGui::Text("Bodies: %d/%zu", world->GetBodyCount(), objects.size());
     ImGui::PopStyleColor();
     ImGui::EndChild();
 }
@@ -115,14 +118,9 @@ void World::Process() {
 
     // Update
     std::vector<double> &heights = terrain.GetHeights();
-    auto obj_end = std::remove_if(objects.begin(), objects.end(), [&heights](Object &obj) {
+    objects.remove_if([&heights](Object &obj) {
         return obj.Update(heights);
     });
-    objects.erase(obj_end, objects.end());
-
-    // Print remaining body positions
-    printf("Objects: %d\n", world->GetBodyCount());
-
     world->Step(timeStep, velocityIterations, positionIterations);
 
     // Zoom
