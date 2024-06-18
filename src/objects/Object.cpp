@@ -1,9 +1,10 @@
 #include <cmath>
 #include <cassert>
 #include "Object.h"
-#include "Terrain.h"
+#include "../model/Terrain.h"
 
 extern std::unique_ptr<b2World> world;
+extern Terrain terrain;
 
 Object::Object(float x, float y) {
     b2BodyDef bodyDef;
@@ -26,14 +27,14 @@ Object::~Object() {
     world->DestroyBody(body);
 }
 
-bool Object::Update(std::vector<double> &heights) {
+bool Object::ImpactUpdate() {
     float x = body->GetPosition().x;
     float y = body->GetPosition().y;
 
     // Impact?
     int xa = x + Terrain::F_TERRAIN_WIDTH / 2.0;
-    float diff = fabs(y - (float) heights[xa]);
-    if (diff < 1.5) {
+    float diff = fabs(y - (float) terrain.GetHeights()[xa]);
+    if (diff < radius) {
         return true;
     }
 

@@ -32,8 +32,14 @@ add_executable(${PROJECT_NAME}
         src/model/WorldPosition.h
         src/ui/CairoDebugDraw.h
         src/ui/CairoDebugDraw.h
-        src/model/Object.cpp
-        src/model/Object.h)
+        src/objects/Object.cpp
+        src/objects/Object.h
+        src/objects/Generic.cpp
+        src/objects/Generic.h
+        src/objects/Emplacement.cpp
+        src/objects/Emplacement.h
+        src/objects/MachineGun.cpp
+        src/objects/MachineGun.h)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
         ${CMAKE_SOURCE_DIR}/src/imgui)

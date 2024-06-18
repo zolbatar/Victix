@@ -20,7 +20,7 @@ App::App(GLFWwindow *window) : window(window) {
 
     // Set default UI font
     io.Fonts->AddFontFromFileTTF(
-            "assets/fonts/Inter-Regular.ttf",
+            "assets/fonts/Orbitron-Regular.ttf",
             dpi_scaling * ui_font_size,
             nullptr,
             nullptr);

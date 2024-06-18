@@ -14,7 +14,7 @@ private:
     cairo_t *cr;
     GLuint render;
     int width, height;
-    const float ui_font_size = 16.0f;
+    const float ui_font_size = 18.0f;
 
 public:
     App(GLFWwindow *window);

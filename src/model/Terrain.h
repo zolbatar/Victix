@@ -7,9 +7,9 @@
 
 class Terrain {
 private:
-    const float SCALE = 1.0f;
-    const int DEPTH = 3;
-    const float FREQ = 0.025f;
+    const float SCALE = 2.5f;
+    const int DEPTH = 5;
+    const float FREQ = 0.01f;
     std::vector<double> heights;
 
 public:

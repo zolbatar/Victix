@@ -8,14 +8,19 @@
 #include "WorldPosition.h"
 #include "../ui/CairoDebugDraw.h"
 #include <box2d/box2d.h>
-#include "Object.h"
+#include "../objects/Object.h"
 
 class World {
 private:
-    Terrain terrain;
     WorldPosition state;
     ImVec2 last_drag;
     bool dragging = false;
+
+    // Smooth scroll animation
+    double startTime = glfwGetTime();
+    double duration = 0.25; // Animation duration in seconds
+    double startValue = 0.0; // Start value
+    double endValue = 100.0; // End value
 
     // Box2D
     const float timeStep = 1.0f / 60.0f;
@@ -23,7 +28,7 @@ private:
     const int32 positionIterations = 2;
     b2Body *groundBody;
     CairoDebugDraw cairoDebugDraw;
-    std::list<Object> objects;
+    std::list<std::unique_ptr<Object>> objects;
 
     void DoZoom(int vzoom);
 

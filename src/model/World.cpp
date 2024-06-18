@@ -1,7 +1,10 @@
 #include <random>
 #include "imgui.h"
 #include "World.h"
+#include "../objects/Generic.h"
+#include "../objects/MachineGun.h"
 
+Terrain terrain;
 std::unique_ptr<b2World> world;
 static std::random_device rd;  // Random device to seed the generator
 static std::mt19937 gen(rd()); // Standard Mersenne Twister engine seeded with rd()
@@ -42,8 +45,13 @@ World::World() {
     for (unsigned int i = 0; i < 250; i++) {
         int idx = disi(gen);
         int x = idx - Terrain::TERRAIN_WIDTH / 2;
-        objects.emplace_back(x, (float) heights[idx] + 5 + dis(gen));
+        objects.emplace_back(std::make_unique<Generic>(x, (float) heights[idx] + 5 + dis(gen)));
     }
+
+    // Add emplacements
+    int idx = disi(gen);
+    int x = idx - Terrain::TERRAIN_WIDTH / 2;
+    objects.emplace_back(std::make_unique<MachineGun>(x, (float) heights[idx] + 5 + dis(gen)));
 
     // Debug draw
     cairoDebugDraw.SetFlags(b2Draw::e_shapeBit | b2Draw::e_jointBit | b2Draw::e_aabbBit | b2Draw::e_pairBit |
@@ -54,12 +62,15 @@ World::World() {
 void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float width, float height) {
     ImGuiIO &io = ImGui::GetIO();
     cairoDebugDraw.SetCR(cr);
-    if (!state.zoom) {
-        state.scale = io.DisplaySize.y / (Terrain::F_TERRAIN_HEIGHT * 6);
-        state.offset_y = Terrain::F_TERRAIN_HEIGHT * 2;
-    } else {
-        state.scale = io.DisplaySize.y / (Terrain::F_TERRAIN_HEIGHT * 2);
-        state.offset_y = 0;//Terrain::F_TERRAIN_HEIGHT;
+    switch (state.zoom) {
+        case 0:
+            state.scale = io.DisplaySize.y / (Terrain::F_TERRAIN_HEIGHT * 2);
+            state.offset_y = 0;//Terrain::F_TERRAIN_HEIGHT;
+            break;
+        case 1:
+            state.scale = io.DisplaySize.y / (Terrain::F_TERRAIN_HEIGHT * 6);
+            state.offset_y = Terrain::F_TERRAIN_HEIGHT * 2;
+            break;
     }
 
     // Background
@@ -76,7 +87,7 @@ void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float w
 
     // Objects
     for (auto &obj: objects) {
-        obj.Render(cr);
+        obj->Render(cr);
     }
 
     // Render debug draw using Cairo
@@ -100,12 +111,26 @@ void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float w
 
     ImGui::BeginChild("Position", ImVec2(200, 200), false,
                       ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration);
-    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 0, 0, 255));
+    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 253, 208, 255));
     ImGui::Text("Position: %.2f %.2f", state.offset_x, state.offset_y);
     ImGui::Text("Scale: %.2f", state.scale);
     ImGui::Text("Bodies: %d/%zu", world->GetBodyCount(), objects.size());
     ImGui::PopStyleColor();
     ImGui::EndChild();
+}
+
+// Easing function: easeInOutQuad
+// t: current time (in range [0, duration])
+// b: start value
+// c: change in value (end value - start value)
+// d: total duration
+double easeInOutQuad(double t, double b, double c, double d) {
+    t /= d / 2;
+    if (t < 1) {
+        return c / 2 * std::pow(t, 2) + b;
+    }
+    t--;
+    return -c / 2 * (t * (t - 2) - 1) + b;
 }
 
 void World::Process() {
@@ -114,47 +139,90 @@ void World::Process() {
 
     // Update
     std::vector<double> &heights = terrain.GetHeights();
-    objects.remove_if([&heights](Object &obj) {
-        return obj.Update(heights);
-    });
+    objects.remove_if([](std::unique_ptr<Object> &obj) { return obj->Update(); });
     world->Step(timeStep, velocityIterations, positionIterations);
 
     // Zoom
     if (ImGui::IsKeyPressed(ImGuiKey_Z, false)) {
-        state.zoom = true;
+        state.zoom = 0;
     } else if (ImGui::IsKeyPressed(ImGuiKey_X, false)) {
-        state.zoom = false;
+        state.zoom = 1;
+/*    } else if (ImGui::IsKeyPressed(ImGuiKey_C, false)) {
+        state.zoom = 2;*/
     } else if (io.MouseWheel != 0.0f) {
-        if (io.MouseWheel < 0)
-            state.zoom = false;
-        else
-            state.zoom = true;
+        if (io.MouseWheel < 0) {
+            state.zoom--;
+            if (state.zoom < 0)
+                state.zoom = 0;
+        } else {
+            state.zoom++;
+            if (state.zoom > 1)
+                state.zoom = 1;
+        }
     }
 
     // Dragging
-    if (ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
-        ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
+    if (ImGui::IsMouseDragging(ImGuiMouseButton_Right)) {
+        ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
         if (!dragging) {
             dragging = true;
             last_drag = drag_delta;
         } else {
             float drag_scale = 1.0f / state.scale;
             state.offset_x -= (drag_delta.x - last_drag.x) * drag_scale;
+            state.target_x = state.offset_x;
             state.offset_y += (drag_delta.y - last_drag.y) * drag_scale;
+            state.target_y = state.offset_y;
+            state.easing = false;
             last_drag = drag_delta;
-        }
-
-        // Off-screen?
-        float ff = (io.DisplaySize.x / 2) / state.scale;
-        float left_edge = Terrain::F_TERRAIN_WIDTH / 2 - ff;
-        float right_edge = -Terrain::F_TERRAIN_WIDTH / 2 + ff;
-        if (state.offset_x < -left_edge) {
-            state.offset_x = -left_edge;
-        }
-        if (state.offset_x > -right_edge) {
-            state.offset_x = -right_edge;
         }
     } else {
         dragging = false;
+    }
+
+    // Bounds
+    float ff = (io.DisplaySize.x / 2) / state.scale;
+    float left_edge = Terrain::F_TERRAIN_WIDTH / 2 - ff;
+    float right_edge = -Terrain::F_TERRAIN_WIDTH / 2 + ff;
+
+    // Move?
+    if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow, false)) {
+        state.offset_x = right_edge;
+        state.target_x = state.offset_x;
+    } else if (ImGui::IsKeyPressed(ImGuiKey_RightArrow, false)) {
+        state.offset_x = left_edge;
+        state.target_x = state.offset_x;
+    }
+
+    // Off-screen?
+    if (state.offset_x < -left_edge) {
+        state.offset_x = -left_edge;
+    }
+    if (state.offset_x > -right_edge) {
+        state.offset_x = -right_edge;
+    }
+    if (state.target_x < -left_edge) {
+        state.target_x = -left_edge;
+    }
+    if (state.target_x > -right_edge) {
+        state.target_x = -right_edge;
+    }
+
+    // Animate?
+    if (state.easing) {
+        // Calculate current interpolated value using easeInOutQuad
+        double currentTime = glfwGetTime() - startTime;
+        if (currentTime <= duration) {
+            state.offset_x = easeInOutQuad(currentTime, startValue, endValue - startValue, duration);
+            ImGui::Text("Interpolated Value: %.2f", state.offset_x);
+        } else {
+            state.easing = false;
+            state.offset_x = state.target_x;
+        }
+    } else if (state.target_x != state.offset_x) {
+        startTime = glfwGetTime();
+        startValue = state.offset_x;
+        endValue = state.target_x;
+        state.easing = true;
     }
 }

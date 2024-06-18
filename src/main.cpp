@@ -5,8 +5,8 @@
 #include "imgui/backends/imgui_impl_opengl3.h"
 #include "App.h"
 
-int window_width = 1280;
-int window_height = 720;
+const int window_width = 1280;
+const int window_height = 720;
 void glfw_scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 
 #if defined(IMGUI_IMPL_OPENGL_ES2)
@@ -69,6 +69,8 @@ int main() {
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;        // Enable Gamepad Controls
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
+    io.KeyRepeatDelay = 0.0f;  // No delay before repeating starts
+    io.KeyRepeatRate = 0.05f;  // Repeat every 0.05 seconds
 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window, true);
