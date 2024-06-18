@@ -10,8 +10,6 @@ static std::uniform_int_distribution<> disi(0, Terrain::TERRAIN_WIDTH);
 
 World::World() {
     ImGuiIO &io = ImGui::GetIO();
-    state.zoom = 0;
-    state.scale = state.zooms[state.zoom];
     state.offset_x = 0.0f;
     state.offset_y = 0.0f;
 
@@ -54,7 +52,15 @@ World::World() {
 }
 
 void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float width, float height) {
+    ImGuiIO &io = ImGui::GetIO();
     cairoDebugDraw.SetCR(cr);
+    if (!state.zoom) {
+        state.scale = io.DisplaySize.y / (Terrain::F_TERRAIN_HEIGHT * 6);
+        state.offset_y = Terrain::F_TERRAIN_HEIGHT * 2;
+    } else {
+        state.scale = io.DisplaySize.y / (Terrain::F_TERRAIN_HEIGHT * 2);
+        state.offset_y = 0;//Terrain::F_TERRAIN_HEIGHT;
+    }
 
     // Background
     cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
@@ -62,7 +68,6 @@ void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float w
 
     // Terrain
     cairo_save(cr);
-    ImGuiIO &io = ImGui::GetIO();
     cairo_translate(cr,
                     io.DisplaySize.x / 2 - (state.offset_x * state.scale),
                     io.DisplaySize.y / 2 + (state.offset_y * state.scale));
@@ -97,19 +102,10 @@ void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float w
                       ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration);
     ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 0, 0, 255));
     ImGui::Text("Position: %.2f %.2f", state.offset_x, state.offset_y);
-    ImGui::Text("Scale: %.2f %d", state.scale, state.zoom);
+    ImGui::Text("Scale: %.2f", state.scale);
     ImGui::Text("Bodies: %d/%zu", world->GetBodyCount(), objects.size());
     ImGui::PopStyleColor();
     ImGui::EndChild();
-}
-
-void World::DoZoom(int vzoom) {
-    state.zoom += vzoom;
-    if (state.zoom < 0)
-        state.zoom = 0;
-    if (state.zoom >= state.count_zooms)
-        state.zoom = state.count_zooms - 1;
-    state.scale = state.zooms[state.zoom];
 }
 
 void World::Process() {
@@ -125,14 +121,14 @@ void World::Process() {
 
     // Zoom
     if (ImGui::IsKeyPressed(ImGuiKey_Z, false)) {
-        DoZoom(1);
+        state.zoom = true;
     } else if (ImGui::IsKeyPressed(ImGuiKey_X, false)) {
-        DoZoom(-1);
+        state.zoom = false;
     } else if (io.MouseWheel != 0.0f) {
         if (io.MouseWheel < 0)
-            DoZoom(-1);
+            state.zoom = false;
         else
-            DoZoom(1);
+            state.zoom = true;
     }
 
     // Dragging
@@ -142,10 +138,21 @@ void World::Process() {
             dragging = true;
             last_drag = drag_delta;
         } else {
-            float drag_scale = 1.0 / state.scale;
+            float drag_scale = 1.0f / state.scale;
             state.offset_x -= (drag_delta.x - last_drag.x) * drag_scale;
             state.offset_y += (drag_delta.y - last_drag.y) * drag_scale;
             last_drag = drag_delta;
+        }
+
+        // Off-screen?
+        float ff = (io.DisplaySize.x / 2) / state.scale;
+        float left_edge = Terrain::F_TERRAIN_WIDTH / 2 - ff;
+        float right_edge = -Terrain::F_TERRAIN_WIDTH / 2 + ff;
+        if (state.offset_x < -left_edge) {
+            state.offset_x = -left_edge;
+        }
+        if (state.offset_x > -right_edge) {
+            state.offset_x = -right_edge;
         }
     } else {
         dragging = false;

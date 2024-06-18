@@ -26,8 +26,17 @@ void Terrain::Render(cairo_t *cr, WorldPosition &pos) {
     ImGuiIO &io = ImGui::GetIO();
 
     // Sky
-    cairo_rectangle(cr, -F_TERRAIN_WIDTH / 2.0, -F_TERRAIN_HEIGHT, F_TERRAIN_WIDTH, F_TERRAIN_HEIGHT * 2.0);
+    cairo_save(cr);
+    cairo_identity_matrix(cr);
+    cairo_pattern_t *pat = Interface::SetLinear(io.DisplaySize.x / 2, 0, io.DisplaySize.y * 1.4, 90);
+    cairo_pattern_add_color_stop_rgb(pat, 0.0, 55.0 / 255.0, 16.0 / 255.0, 102.0 / 255.0);
+    cairo_pattern_add_color_stop_rgb(pat, 0.5, 255.0 / 255.0, 69.0 / 255.0, 157.0 / 255.0);
+    cairo_pattern_add_color_stop_rgb(pat, 1.0, 255.0 / 255.0, 144.0 / 255.0, 0.0 / 255.0);
+    cairo_rectangle(cr, 0, 0, io.DisplaySize.x, io.DisplaySize.y);
+    cairo_set_source(cr, pat);
     cairo_fill(cr);
+    cairo_pattern_destroy(pat);
+    cairo_restore(cr);
 
     // Work out step
     unsigned int d = next_power_of_2(1.0f / pos.scale);
@@ -43,13 +52,21 @@ void Terrain::Render(cairo_t *cr, WorldPosition &pos) {
     cairo_line_to(cr, (F_TERRAIN_WIDTH / 2), -F_TERRAIN_HEIGHT);
     cairo_line_to(cr, -(F_TERRAIN_WIDTH / 2), -F_TERRAIN_HEIGHT);
     cairo_close_path(cr);
-    cairo_set_source_rgb(cr, 0.8, 0.8, 0.8);
+
+    pat = Interface::SetLinear(0, TERRAIN_HEIGHT / 2, TERRAIN_WIDTH, 0);
+    cairo_pattern_add_color_stop_rgb(pat, 0.0, 25.0 / 255.0, 25.0 / 255.0, 112.0 / 255.0);
+    cairo_pattern_add_color_stop_rgb(pat, 1.0, 48.0 / 255.0, 25.0 / 255.0, 52.0 / 255.0);
+    cairo_set_source(cr, pat);
     cairo_fill(cr);
+    cairo_pattern_destroy(pat);
 
     // Outline
     cairo_append_path(cr, path);
-    cairo_set_source_rgb(cr, 0, 0, 0);
-    cairo_set_line_width(cr, 1.0);
+    pat = Interface::SetLinear(0, TERRAIN_HEIGHT / 2, TERRAIN_WIDTH, 0);
+    cairo_pattern_add_color_stop_rgb(pat, 1.0, 0.0 / 255.0, 255.0 / 255.0, 255.0 / 255.0);
+    cairo_pattern_add_color_stop_rgb(pat, 0.0, 255.0 / 255.0, 20.0 / 255.0, 147.0 / 255.0);
+    cairo_set_source(cr, pat);
+    cairo_set_line_width(cr, 1.5);
     cairo_stroke(cr);
     cairo_path_destroy(path);
 }

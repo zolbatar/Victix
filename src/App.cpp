@@ -65,9 +65,11 @@ void App::Go() {
         ImGuiViewport *main_viewport = ImGui::GetMainViewport();
         ImGui::SetNextWindowPos(main_viewport->Pos);
         ImGui::SetNextWindowSize(main_viewport->Size);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 8));
         ImGui::Begin("Surface", nullptr,
-                     ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+                     ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize |
+                     ImGuiWindowFlags_NoScrollbar);
 
         // Render world
         if (world == nullptr)
@@ -75,7 +77,7 @@ void App::Go() {
         world->Render(cr, surface, render, width, height);
 
         ImGui::End();
-        ImGui::PopStyleVar();
+        ImGui::PopStyleVar(2);
 
         if (show_demo_window)
             ImGui::ShowDemoWindow(&show_demo_window);
@@ -85,6 +87,7 @@ void App::Go() {
         int display_w, display_h;
         glfwGetFramebufferSize(window, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         glfwSwapBuffers(window);
