@@ -39,17 +39,19 @@ void RenderMinimap(cairo_t *cr, std::vector<double> &heights, WorldPosition &pos
     // And objects
     for (auto &obj: game_world->GetObjects()) {
         float sz = obj->GetMinimapSize();
-        b2Vec2 pos = obj->GetBody()->GetPosition();
+        b2Vec2 _pos = obj->GetBody()->GetPosition();
         cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
-        cairo_rectangle(cr, pos.x, pos.y, sz, sz);
+        cairo_rectangle(cr, _pos.x, _pos.y, sz, sz);
         cairo_fill(cr);
     }
 
     // Outline
-    cairo_move_to(cr, -io.DisplaySize.x / 2 + pos.offset_x, -Terrain::F_TERRAIN_HEIGHT);
-    cairo_line_to(cr, io.DisplaySize.x / 2 + pos.offset_x, -Terrain::F_TERRAIN_HEIGHT);
-    cairo_move_to(cr, -io.DisplaySize.x / 2, Terrain::F_TERRAIN_HEIGHT * 3);
-    cairo_line_to(cr, io.DisplaySize.x / 2, Terrain::F_TERRAIN_HEIGHT * 3);
+    float x1 = io.DisplaySize.x / 2 / pos.scale - pos.offset_x;
+    float x2 = io.DisplaySize.x / pos.scale;
+    cairo_move_to(cr, -x1, -Terrain::F_TERRAIN_HEIGHT);
+    cairo_line_to(cr, -x1 + x2, -Terrain::F_TERRAIN_HEIGHT);
+    cairo_move_to(cr, -x1, Terrain::F_TERRAIN_HEIGHT * 3);
+    cairo_line_to(cr, -x1 + x2, Terrain::F_TERRAIN_HEIGHT * 3);
     cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
     cairo_set_line_width(cr, divider * 2);
     cairo_stroke(cr);
