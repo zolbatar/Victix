@@ -12,6 +12,14 @@ static std::mt19937 gen(rd()); // Standard Mersenne Twister engine seeded with r
 static std::uniform_real_distribution<> dis(0.0, 150.0);
 static std::uniform_int_distribution<> disi(0, Terrain::TERRAIN_WIDTH);
 
+// FPS
+auto lastTime = std::chrono::high_resolution_clock::now();
+float fps = 0.0f;
+int frameCount = 0;
+auto startTime = std::chrono::high_resolution_clock::now();
+
+void updateFPS();
+
 World::World() {
     ImGuiIO &io = ImGui::GetIO();
     state.offset_x = 0.0f;
@@ -74,8 +82,9 @@ void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float w
             break;
     }
 
-    // Background
-    cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
+    // Clear the surface with a transparent color
+    cairo_set_source_rgba(cr, 0.0, 0.0, 0.0, 0.0); // Fully transparent
+    cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
     cairo_paint(cr);
 
     // Terrain
@@ -93,7 +102,7 @@ void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float w
 
     // Minimap
     cairo_restore(cr);
-    RenderMinimap(cr);
+    RenderMinimap(cr, terrain.GetHeights(), state);
 
     // Render debug draw using Cairo
 /*    cairo_set_line_width(cr, 0.1);
@@ -119,6 +128,7 @@ void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float w
     ImGui::Text("Position: %.2f %.2f", state.offset_x, state.offset_y);
     ImGui::Text("Scale: %.2f", state.scale);
     ImGui::Text("Bodies: %d/%zu", world->GetBodyCount(), objects.size());
+    updateFPS();
     ImGui::PopStyleColor();
     ImGui::EndChild();
 }
@@ -229,4 +239,24 @@ void World::Process() {
         endValue = state.target_x;
         state.easing = true;
     }
+}
+
+
+void updateFPS() {
+    // Get current time
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<float> elapsedTime = currentTime - lastTime;
+    lastTime = currentTime;
+
+    // Calculate FPS
+    frameCount++;
+    std::chrono::duration<float> totalTime = currentTime - startTime;
+    if (totalTime.count() >= 1.0f) { // Update FPS every second
+        fps = frameCount / totalTime.count();
+        frameCount = 0;
+        startTime = currentTime;
+    }
+
+    // Display FPS in ImGui
+    ImGui::Text("FPS: %.2f", fps);
 }

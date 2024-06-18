@@ -1,3 +1,4 @@
+#include <chrono>
 #include "App.h"
 #include "imgui.h"
 #include "backends/imgui_impl_opengl3.h"
@@ -39,8 +40,26 @@ App::App(GLFWwindow *window) : window(window) {
     height = mode->height * Interface::GetDPIScaling();
     surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
     cr = cairo_create(surface);
-    cairo_set_antialias(cr, CAIRO_ANTIALIAS_BEST);
     render = Interface::CreateTexture(width, height, GL_NEAREST, nullptr);
+    bg = Interface::CreateTexture(width, height, GL_NEAREST, nullptr);
+
+    // Sky
+    cairo_set_antialias(cr, CAIRO_ANTIALIAS_BEST);
+    cairo_pattern_t *pat = Interface::SetLinear(width / 2, 0, height * 0.5, 90);
+    cairo_pattern_add_color_stop_rgb(pat, 0.0, 55.0 / 255.0, 16.0 / 255.0, 102.0 / 255.0);
+    cairo_pattern_add_color_stop_rgb(pat, 0.5, 255.0 / 255.0, 69.0 / 255.0, 157.0 / 255.0);
+    cairo_pattern_add_color_stop_rgb(pat, 1.0, 255.0 / 255.0, 144.0 / 255.0, 0.0 / 255.0);
+    cairo_rectangle(cr, 0, 0, width, height);
+    cairo_set_source(cr, pat);
+    cairo_fill(cr);
+    cairo_pattern_destroy(pat);
+    cairo_surface_flush(surface);
+    glBindTexture(GL_TEXTURE_2D, bg);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height,
+                 0, GL_BGRA, GL_UNSIGNED_BYTE,
+                 cairo_image_surface_get_data(surface));
+
+    cairo_set_antialias(cr, CAIRO_ANTIALIAS_BEST);
 }
 
 void App::Go() {
@@ -72,6 +91,15 @@ void App::Go() {
                      ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize |
                      ImGuiWindowFlags_NoScrollbar);
 
+        // Background
+        ImGui::GetWindowDrawList()->AddImage(
+                reinterpret_cast<ImTextureID>(bg),
+                ImVec2(0.0f, 0.0f),
+                ImVec2(width, height),
+                ImVec2(0.0f, 0.0f),
+                ImVec2(1.0f, 1.0f),
+                IM_COL32(255, 255, 255, 255));
+
         // Render world
         if (game_world == nullptr)
             game_world = std::make_unique<World>();
@@ -98,6 +126,9 @@ void App::Go() {
 App::~App() {
     cairo_destroy(cr);
     cairo_surface_destroy(surface);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glDeleteTextures(1, &render);
+    glDeleteTextures(1, &bg);
 }
 
 ImVec4 HexToImVec4(uint32_t hex) {

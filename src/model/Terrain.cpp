@@ -23,26 +23,9 @@ Terrain::Terrain() {
 }
 
 void Terrain::Render(cairo_t *cr, WorldPosition &pos) {
-    ImGuiIO &io = ImGui::GetIO();
-
-    // Sky
-    cairo_save(cr);
-    cairo_identity_matrix(cr);
-    cairo_pattern_t *pat = Interface::SetLinear(io.DisplaySize.x / 2, 0, io.DisplaySize.y * 1.4, 90);
-    cairo_pattern_add_color_stop_rgb(pat, 0.0, 55.0 / 255.0, 16.0 / 255.0, 102.0 / 255.0);
-    cairo_pattern_add_color_stop_rgb(pat, 0.5, 255.0 / 255.0, 69.0 / 255.0, 157.0 / 255.0);
-    cairo_pattern_add_color_stop_rgb(pat, 1.0, 255.0 / 255.0, 144.0 / 255.0, 0.0 / 255.0);
-    cairo_rectangle(cr, 0, 0, io.DisplaySize.x, io.DisplaySize.y);
-    cairo_set_source(cr, pat);
-    cairo_fill(cr);
-    cairo_pattern_destroy(pat);
-    cairo_restore(cr);
-
-    // Work out step
-    unsigned int d = next_power_of_2(1.0f / pos.scale);
 
     // Do it
-    for (unsigned int i = 0; i < F_TERRAIN_WIDTH; i += d) {
+    for (unsigned int i = 0; i < F_TERRAIN_WIDTH; i++) {
         if (i == 0)
             cairo_move_to(cr, i - F_TERRAIN_WIDTH / 2, heights[i]);
         else
@@ -53,39 +36,13 @@ void Terrain::Render(cairo_t *cr, WorldPosition &pos) {
     cairo_line_to(cr, -(F_TERRAIN_WIDTH / 2), -F_TERRAIN_HEIGHT);
     cairo_close_path(cr);
 
-    pat = Interface::SetLinear(0, TERRAIN_HEIGHT / 2, TERRAIN_WIDTH, 0);
-    cairo_pattern_add_color_stop_rgb(pat, 0.0, 25.0 / 255.0, 25.0 / 255.0, 112.0 / 255.0);
-    cairo_pattern_add_color_stop_rgb(pat, 1.0, 48.0 / 255.0, 25.0 / 255.0, 52.0 / 255.0);
-    cairo_set_source(cr, pat);
+    // Fill
+    cairo_set_source_rgb(cr, 25.0 / 255.0, 25.0 / 255.0, 112.0 / 255.0);
     cairo_fill(cr);
-    cairo_pattern_destroy(pat);
 
     // Outline
     cairo_append_path(cr, path);
-    pat = Interface::SetLinear(0, TERRAIN_HEIGHT / 2, TERRAIN_WIDTH, 0);
-    cairo_pattern_add_color_stop_rgb(pat, 0.0, 0.0 / 255.0, 255.0 / 255.0, 255.0 / 255.0);
-    cairo_pattern_add_color_stop_rgb(pat, 1.0, 255.0 / 255.0, 20.0 / 255.0, 147.0 / 255.0);
-    cairo_set_source(cr, pat);
+    cairo_set_source_rgb(cr, 0.0 / 255.0, 255.0 / 255.0, 255.0 / 255.0);
     cairo_set_line_width(cr, 1.5);
     cairo_stroke(cr);
-    cairo_path_destroy(path);
-}
-
-unsigned int next_power_of_2(float x) {
-    // Convert float to unsigned int for bit manipulation
-    auto n = (unsigned int) ceil(x);
-
-    // Check if n is already a power of 2
-    if ((n & (n - 1)) == 0) {
-        return n; // n is already a power of 2
-    }
-
-    // Find the next power of 2 using bit manipulation
-    n--;
-    n |= n >> 1;
-    n |= n >> 2;
-    n |= n >> 4;
-    n |= n >> 8;
-    n |= n >> 16;
-    return n + 1;
 }
