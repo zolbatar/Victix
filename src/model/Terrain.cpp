@@ -63,8 +63,8 @@ void Terrain::Render(cairo_t *cr, WorldPosition &pos) {
     // Outline
     cairo_append_path(cr, path);
     pat = Interface::SetLinear(0, TERRAIN_HEIGHT / 2, TERRAIN_WIDTH, 0);
-    cairo_pattern_add_color_stop_rgb(pat, 1.0, 0.0 / 255.0, 255.0 / 255.0, 255.0 / 255.0);
-    cairo_pattern_add_color_stop_rgb(pat, 0.0, 255.0 / 255.0, 20.0 / 255.0, 147.0 / 255.0);
+    cairo_pattern_add_color_stop_rgb(pat, 0.0, 0.0 / 255.0, 255.0 / 255.0, 255.0 / 255.0);
+    cairo_pattern_add_color_stop_rgb(pat, 1.0, 255.0 / 255.0, 20.0 / 255.0, 147.0 / 255.0);
     cairo_set_source(cr, pat);
     cairo_set_line_width(cr, 1.5);
     cairo_stroke(cr);

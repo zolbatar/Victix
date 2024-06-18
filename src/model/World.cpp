@@ -3,6 +3,7 @@
 #include "World.h"
 #include "../objects/Generic.h"
 #include "../objects/MachineGun.h"
+#include "../ui/Minimap.h"
 
 Terrain terrain;
 std::unique_ptr<b2World> world;
@@ -90,10 +91,13 @@ void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float w
         obj->Render(cr);
     }
 
+    // Minimap
+    cairo_restore(cr);
+    RenderMinimap(cr);
+
     // Render debug draw using Cairo
 /*    cairo_set_line_width(cr, 0.1);
     world->DebugDraw();*/
-    cairo_restore(cr);
 
     // Write to texture and blit
     cairo_surface_flush(surface);

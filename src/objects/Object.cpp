@@ -23,8 +23,9 @@ Object::Object(float x, float y) {
 }
 
 Object::~Object() {
-    assert (!world->IsLocked());
-    world->DestroyBody(body);
+    if (body != nullptr && world != nullptr) {
+        world->DestroyBody(body);
+    }
 }
 
 bool Object::ImpactUpdate() {

@@ -4,6 +4,8 @@
 #include "backends/imgui_impl_glfw.h"
 #include "model/World.h"
 
+std::unique_ptr<World> game_world;
+
 App::App(GLFWwindow *window) : window(window) {
     ImGuiIO &io = ImGui::GetIO();
 
@@ -42,7 +44,6 @@ App::App(GLFWwindow *window) : window(window) {
 }
 
 void App::Go() {
-    std::unique_ptr<World> world;
 
     while (!glfwWindowShouldClose(window)) {
         // Poll and handle events (inputs, window resize, etc.)
@@ -58,8 +59,8 @@ void App::Go() {
         ImGui::NewFrame();
 
         // Update things, process input etc.
-        if (world != nullptr)
-            world->Process();
+        if (game_world != nullptr)
+            game_world->Process();
 
         // Full screen window
         ImGuiViewport *main_viewport = ImGui::GetMainViewport();
@@ -72,9 +73,9 @@ void App::Go() {
                      ImGuiWindowFlags_NoScrollbar);
 
         // Render world
-        if (world == nullptr)
-            world = std::make_unique<World>();
-        world->Render(cr, surface, render, width, height);
+        if (game_world == nullptr)
+            game_world = std::make_unique<World>();
+        game_world->Render(cr, surface, render, width, height);
 
         ImGui::End();
         ImGui::PopStyleVar(2);
