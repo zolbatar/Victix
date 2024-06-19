@@ -2,6 +2,7 @@
 #include "../model/World.h"
 #include "Generic.h"
 
+static std::vector<float> previous;
 extern std::unique_ptr<World> game_world;
 extern std::unique_ptr<Terrain> terrain;
 float Emplacement::size = 15.0;
@@ -21,9 +22,7 @@ Emplacement::Emplacement(float x, float y) : Object(x, y) {
     body->CreateFixture(&fixtureDef);
 }
 
-void Emplacement::AddEmplacement(float x, float y, WorldPosition &state) {
-
-    // Get heights
+void Emplacement::AddEmplacement(float x, float y, bool final) {
     auto &heights = terrain->GetHeights();
 
     // Align X
@@ -32,16 +31,26 @@ void Emplacement::AddEmplacement(float x, float y, WorldPosition &state) {
 
     // Work out index into height array
     ImGuiIO &io = ImGui::GetIO();
-    int idx = round(x + Terrain::F_TERRAIN_WIDTH / 2);
-    int idx1 = round(idx - size / 2) - 2;
-    int idx2 = round(idx + size / 2) + 2;
+    game_world->idx = round(x + Terrain::F_TERRAIN_WIDTH / 2);
+    game_world->idx1 = round(game_world->idx - size / 2) - 2;
+    game_world->idx2 = round(game_world->idx + size / 2) + 2;
 
-    for (int i = idx1; i < idx2; i++) {
-        heights[i] = y - size / 2;
+    // Actually place?
+    if (final) {
+//        game_world->GetObjects().emplace_back(std::make_unique<Emplacement>(x, y + 10));
+//        terrain->UpdateBox2D();
+    } else {
+        // Save previous
+        previous.reserve(game_world->idx2 - game_world->idx1);
+        for (int i = game_world->idx1; i < game_world->idx2; i++) {
+            previous[i - game_world->idx1] = heights[i];
+        }
+
+        // Now update
+        for (int i = game_world->idx1; i < game_world->idx2; i++) {
+            heights[i] = y - size / 2;
+        }
     }
-
-    game_world->GetObjects().emplace_back(std::make_unique<Emplacement>(x, y + 5));
-    terrain->UpdateBox2D();
 }
 
 bool Emplacement::Update() {
@@ -77,6 +86,13 @@ void Emplacement::Render(cairo_t *cr) {
     cairo_set_line_width(cr, 1.0);
     cairo_stroke(cr);
     cairo_restore(cr);
+}
+
+void Emplacement::Restore() {
+    auto &heights = terrain->GetHeights();
+    for (int i = game_world->idx1; i < game_world->idx2; i++) {
+        heights[i] = previous[i - game_world->idx1];
+    }
 }
 
 

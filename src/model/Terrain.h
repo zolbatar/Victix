@@ -26,7 +26,7 @@ public:
 
     Terrain();
 
-    void Render(cairo_t *cr, WorldPosition &pos);
+    void Render(cairo_t *cr, WorldPosition &state);
 
     void GenerateTerrain(PerlinNoise &perlin);
 

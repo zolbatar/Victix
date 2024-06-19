@@ -1,3 +1,4 @@
+#include <vector>
 #include "Object.h"
 #include "../model/WorldPosition.h"
 
@@ -10,7 +11,9 @@ public:
 
     bool Update() override;
 
-    static void AddEmplacement(float x, float y, WorldPosition &state);
+    static void AddEmplacement(float x, float y, bool final);
+
+    static void Restore();
 
     void Render(cairo_t *cr) override;
 };

@@ -2,8 +2,10 @@
 #include "Terrain.h"
 #include "../ui/Interface.h"
 #include "World.h"
+#include "../objects/Emplacement.h"
 
 extern std::unique_ptr<b2World> world;
+extern std::unique_ptr<World> game_world;
 
 unsigned int next_power_of_2(float x);
 
@@ -54,7 +56,14 @@ Terrain::Terrain() {
     GenerateTerrain(noise);
 }
 
-void Terrain::Render(cairo_t *cr, WorldPosition &pos) {
+void Terrain::Render(cairo_t *cr, WorldPosition &state) {
+    if (game_world->add_mode) {
+        ImGuiIO &io = ImGui::GetIO();
+        ImVec2 mouse_position = ImGui::GetMousePos();
+        float x = (mouse_position.x - io.DisplaySize.x / 2) / state.scale + state.offset_x;
+        float y = (io.DisplaySize.y / 2 - mouse_position.y) / state.scale + state.offset_y;
+        Emplacement::AddEmplacement(x, y, false);
+    }
 
     // Do it
     for (unsigned int i = 0; i < F_TERRAIN_WIDTH; i++) {
@@ -77,4 +86,8 @@ void Terrain::Render(cairo_t *cr, WorldPosition &pos) {
     cairo_set_source_rgb(cr, 0.0 / 255.0, 255.0 / 255.0, 255.0 / 255.0);
     cairo_set_line_width(cr, 1.5);
     cairo_stroke(cr);
+
+    if (game_world->add_mode) {
+        Emplacement::Restore();
+    }
 }

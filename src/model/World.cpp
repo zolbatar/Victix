@@ -163,9 +163,7 @@ void World::Process() {
 
     // Click?
     if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-        float x = (pos.x - io.DisplaySize.x / 2) / state.scale + state.offset_x;
-        float y = (io.DisplaySize.y / 2 - pos.y) / state.scale + state.offset_y;
-        Emplacement::AddEmplacement(x, y, state);
+        add_mode = true;
     }
 
     // Bounds

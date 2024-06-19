@@ -37,6 +37,9 @@ private:
     std::list<std::unique_ptr<Object>> objects;
 
 public:
+    bool add_mode = false;
+    int idx, idx1, idx2;
+
     World();
 
     void Build();
