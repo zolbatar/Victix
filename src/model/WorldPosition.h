@@ -4,7 +4,6 @@
 
 class WorldPosition {
 public:
-    float scale, offset_x, offset_y, target_x, target_y;
+    float scale, offset_x, offset_y;
     int zoom = 1;
-    bool easing = false;
 };

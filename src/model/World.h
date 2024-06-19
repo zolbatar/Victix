@@ -17,10 +17,11 @@ private:
     bool dragging = false;
 
     // Smooth scroll animation
-    double startTime = glfwGetTime();
-    double duration = 0.25; // Animation duration in seconds
-    double startValue = 0.0; // Start value
-    double endValue = 100.0; // End value
+    double l_velocity = 0.0;
+    double r_velocity = 0.0;
+    double acceleration = 0.25;
+    double deceleration = 0.5;
+    double max_velocity = 15.0;
 
     // Box2D
     const float timeStep = 1.0f / 60.0f;

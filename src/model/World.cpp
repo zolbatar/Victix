@@ -184,10 +184,9 @@ void World::Process() {
         } else {
             float drag_scale = 1.0f / state.scale;
             state.offset_x -= (drag_delta.x - last_drag.x) * drag_scale;
-            state.target_x = state.offset_x;
             state.offset_y += (drag_delta.y - last_drag.y) * drag_scale;
-            state.target_y = state.offset_y;
-            state.easing = false;
+            l_velocity = 0;
+            r_velocity = 0;
             last_drag = drag_delta;
         }
     } else {
@@ -196,48 +195,66 @@ void World::Process() {
 
     // Bounds
     float ff = (io.DisplaySize.x / 2) / state.scale;
-    float left_edge = Terrain::F_TERRAIN_WIDTH / 2 - ff;
-    float right_edge = -Terrain::F_TERRAIN_WIDTH / 2 + ff;
+    float left_edge = (float) Terrain::F_TERRAIN_WIDTH / 2.0f - ff;
+    float right_edge = (float) -Terrain::F_TERRAIN_WIDTH / 2.0f + ff;
 
     // Move?
-    if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow, false)) {
+    if (ImGui::IsKeyPressed(ImGuiKey_A, false)) {
         state.offset_x = right_edge;
-        state.target_x = state.offset_x;
-    } else if (ImGui::IsKeyPressed(ImGuiKey_RightArrow, false)) {
+        l_velocity = 0;
+        r_velocity = 0;
+    } else if (ImGui::IsKeyPressed(ImGuiKey_S, false)) {
         state.offset_x = left_edge;
-        state.target_x = state.offset_x;
+        l_velocity = 0;
+        r_velocity = 0;
     }
+    bool left_pressed = ImGui::IsKeyDown(ImGuiKey_LeftArrow);
+    bool right_pressed = ImGui::IsKeyDown(ImGuiKey_RightArrow);
+
+    // Animate?
+    if (right_pressed) {
+        r_velocity += acceleration;
+        if (r_velocity > max_velocity)
+            r_velocity = max_velocity;
+    } else {
+        if (r_velocity > 0) {
+            r_velocity -= deceleration;
+            if (r_velocity < 0)
+                r_velocity = 0;
+        } else {
+            r_velocity += deceleration;
+            if (r_velocity > 0)
+                r_velocity = 0;
+        }
+    }
+    if (left_pressed) {
+        l_velocity += acceleration;
+        if (l_velocity > max_velocity)
+            l_velocity = max_velocity;
+    } else {
+        if (l_velocity > 0) {
+            l_velocity -= deceleration;
+            if (l_velocity < 0)
+                l_velocity = 0;
+        } else {
+            l_velocity += deceleration;
+            if (l_velocity > 0)
+                l_velocity = 0;
+        }
+    }
+    state.offset_x += r_velocity;
+    state.offset_x -= l_velocity;
 
     // Off-screen?
     if (state.offset_x < -left_edge) {
         state.offset_x = -left_edge;
+        r_velocity = 0;
+        l_velocity = 0;
     }
     if (state.offset_x > -right_edge) {
         state.offset_x = -right_edge;
-    }
-    if (state.target_x < -left_edge) {
-        state.target_x = -left_edge;
-    }
-    if (state.target_x > -right_edge) {
-        state.target_x = -right_edge;
-    }
-
-    // Animate?
-    if (state.easing) {
-        // Calculate current interpolated value using easeInOutQuad
-        double currentTime = glfwGetTime() - startTime;
-        if (currentTime <= duration) {
-            state.offset_x = easeInOutQuad(currentTime, startValue, endValue - startValue, duration);
-            ImGui::Text("Interpolated Value: %.2f", state.offset_x);
-        } else {
-            state.easing = false;
-            state.offset_x = state.target_x;
-        }
-    } else if (state.target_x != state.offset_x) {
-        startTime = glfwGetTime();
-        startValue = state.offset_x;
-        endValue = state.target_x;
-        state.easing = true;
+        r_velocity = 0;
+        l_velocity = 0;
     }
 }
 
