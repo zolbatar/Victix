@@ -9,10 +9,10 @@ float Emplacement::size = 15.0;
 
 Emplacement::Emplacement(float x, float y) : Object(x, y) {
     b2Vec2 vertices[4];
-    vertices[0].Set(size * 0.5, -size * 0.5);
-    vertices[1].Set(size * 0.3, size * 0.5);
-    vertices[2].Set(-size * 0.3, size * 0.5);
-    vertices[3].Set(-size * 0.5, -size * 0.5);
+    vertices[0].Set(size * 0.5f, -size * 0.5f);
+    vertices[1].Set(size * 0.3f, size * 0.5f);
+    vertices[2].Set(-size * 0.3f, size * 0.5f);
+    vertices[3].Set(-size * 0.5f, -size * 0.5f);
     b2PolygonShape dynamicBox;
     dynamicBox.Set(vertices, 4);
     b2FixtureDef fixtureDef;
@@ -28,17 +28,6 @@ void Emplacement::AddEmplacement(cairo_t *cr, float x, float y, bool final) {
     // Align X
     x = round(x);
     y = round(y);
-
-    // Do we have an existing one?
-    for (auto &obj: game_world->GetObjects()) {
-        if (obj->Type() == Type::EMPLACEMENT) {
-            float x_diff = abs(x - obj->GetBody()->GetPosition().x);
-            if (x_diff < 50) {
-                Emplacement::RenderInternal(cr, x, y, 0, true, true, false);
-                return;
-            }
-        }
-    }
 
     // Work out index into height array
     ImGuiIO &io = ImGui::GetIO();
@@ -58,6 +47,24 @@ void Emplacement::AddEmplacement(cairo_t *cr, float x, float y, bool final) {
     game_world->idx2 = round(game_world->idx + size / 2) + 4;
     int indices = game_world->idx2 - game_world->idx1;
 
+    // Do we have an existing one?
+    for (auto &obj: game_world->GetObjects()) {
+        if (obj->Type() == Type::EMPLACEMENT) {
+            float x_diff = abs(x - obj->GetBody()->GetPosition().x);
+            if (x_diff < 50) {
+
+                // Save previous
+                previous.reserve(indices);
+                for (int i = game_world->idx1; i < game_world->idx2; i++) {
+                    previous[i - game_world->idx1] = (float) heights[i];
+                }
+
+                Emplacement::RenderInternal(cr, x, y, 0, true, true, false);
+                return;
+            }
+        }
+    }
+
     // Actually place?
     if (final) {
         for (int i = game_world->idx1; i < game_world->idx2; i++) {
@@ -69,7 +76,7 @@ void Emplacement::AddEmplacement(cairo_t *cr, float x, float y, bool final) {
         // Save previous
         previous.reserve(indices);
         for (int i = game_world->idx1; i < game_world->idx2; i++) {
-            previous[i - game_world->idx1] = heights[i];
+            previous[i - game_world->idx1] = (float) heights[i];
         }
 
         // Now update
@@ -90,6 +97,10 @@ void Emplacement::Render(cairo_t *cr) {
     float y = body->GetPosition().y;
     float a = body->GetAngle();
     RenderInternal(cr, x, y, a, true, false, true);
+}
+
+void Emplacement::Clear() {
+    previous.clear();
 }
 
 void Emplacement::Restore() {

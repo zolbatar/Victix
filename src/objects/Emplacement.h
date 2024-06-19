@@ -18,6 +18,8 @@ public:
 
     static void AddEmplacement(cairo_t *cr, float x, float y, bool final);
 
+    static void Clear();
+
     static void Restore();
 
     void Render(cairo_t *cr) override;

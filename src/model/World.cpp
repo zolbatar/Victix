@@ -162,7 +162,10 @@ void World::Process(cairo_t *cr) {
     }
 
     // Click?
-    if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+    if (ImGui::IsKeyPressed(ImGuiKey_Escape, false) && add_mode) {
+        add_mode = false;
+        Emplacement::Clear();
+    } else if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
         add_mode = true;
     } else if (add_mode && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
         add_mode = false;
@@ -224,8 +227,8 @@ void World::Process(cairo_t *cr) {
                 l_velocity = 0;
         }
     }
-    state.offset_x += r_velocity;
-    state.offset_x -= l_velocity;
+    state.offset_x += (float) r_velocity;
+    state.offset_x -= (float) l_velocity;
 
     // Click
     if (ImGui::IsMouseClicked(ImGuiMouseButton_Left, false)) {
