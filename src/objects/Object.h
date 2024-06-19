@@ -3,6 +3,7 @@
 #include <memory>
 #include <box2d/box2d.h>
 #include <cairo.h>
+#include "Types.h"
 
 class Object {
 protected:
@@ -16,6 +17,8 @@ public:
     Object(const Object &) = delete;
 
     virtual ~Object();
+
+    virtual Type Type() = 0;
 
     virtual void Render(cairo_t *cr) = 0;
 

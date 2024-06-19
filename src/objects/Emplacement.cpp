@@ -22,12 +22,23 @@ Emplacement::Emplacement(float x, float y) : Object(x, y) {
     body->CreateFixture(&fixtureDef);
 }
 
-void Emplacement::AddEmplacement(float x, float y, bool final) {
+void Emplacement::AddEmplacement(cairo_t *cr, float x, float y, bool final) {
     auto &heights = terrain->GetHeights();
 
     // Align X
     x = round(x);
     y = round(y);
+
+    // Do we have an existing one?
+    for (auto &obj: game_world->GetObjects()) {
+        if (obj->Type() == Type::EMPLACEMENT) {
+            float x_diff = abs(x - obj->GetBody()->GetPosition().x);
+            if (x_diff < 50) {
+                Emplacement::RenderInternal(cr, x, y, 0, true, true, false);
+                return;
+            }
+        }
+    }
 
     // Work out index into height array
     ImGuiIO &io = ImGui::GetIO();
@@ -65,6 +76,8 @@ void Emplacement::AddEmplacement(float x, float y, bool final) {
         for (int i = game_world->idx1; i < game_world->idx2; i++) {
             heights[i] = y - size / 2;
         }
+
+        Emplacement::RenderInternal(cr, x, y, 0, true, true, true);
     }
 }
 
@@ -76,6 +89,21 @@ void Emplacement::Render(cairo_t *cr) {
     float x = body->GetPosition().x;
     float y = body->GetPosition().y;
     float a = body->GetAngle();
+    RenderInternal(cr, x, y, a, true, false, true);
+}
+
+void Emplacement::Restore() {
+    auto &heights = terrain->GetHeights();
+    for (int i = game_world->idx1; i < game_world->idx2; i++) {
+        heights[i] = previous[i - game_world->idx1];
+    }
+}
+
+Type Emplacement::Type() {
+    return EMPLACEMENT;
+}
+
+void Emplacement::RenderInternal(cairo_t *cr, float x, float y, float a, bool is_player, bool outline, bool valid) {
     cairo_save(cr);
     cairo_translate(cr, x, y);
     cairo_rotate(cr, a);
@@ -86,28 +114,32 @@ void Emplacement::Render(cairo_t *cr) {
     cairo_line_to(cr, x - size * 0.5, y - size * 0.5);
     cairo_close_path(cr);
     cairo_path_t *path = cairo_copy_path(cr); // Save for outline
-    if (is_player)
-        cairo_set_source_rgb(cr, 0.0, 0.0, 0.25);
-    else
-        cairo_set_source_rgb(cr, 0.25, 0.0, 0.0);
-    cairo_fill(cr);
+    if (!outline) {
+        if (is_player)
+            cairo_set_source_rgb(cr, 0.0, 0.0, 0.25);
+        else
+            cairo_set_source_rgb(cr, 0.25, 0.0, 0.0);
+        cairo_fill(cr);
+    }
 
     // Outline
     cairo_append_path(cr, path);
     if (is_player)
-        cairo_set_source_rgb(cr, 0.0 / 255.0, 191.0 / 255.0, 255.0 / 255.0);
+        cairo_set_source_rgba(cr, 0.0 / 255.0, 191.0 / 255.0, 255.0 / 255.0, valid ? 1.0 : 0.5);
     else
-        cairo_set_source_rgb(cr, 220.0 / 255.0, 20.0 / 255.0, 60.0 / 255.0);
+        cairo_set_source_rgba(cr, 220.0 / 255.0, 20.0 / 255.0, 60.0 / 255.0, valid ? 1.0 : 0.5);
+    if (outline) {
+        // Define the dash pattern (dash length, gap length)
+        double dashes[] = {1.0, 1.0};
+        int num_dashes = sizeof(dashes) / sizeof(dashes[0]);
+        double offset = 0.0; // Start point of the dash pattern
+
+        // Set the dash pattern
+        cairo_set_dash(cr, dashes, num_dashes, offset);
+    }
     cairo_set_line_width(cr, 1.0);
     cairo_stroke(cr);
     cairo_restore(cr);
-}
-
-void Emplacement::Restore() {
-    auto &heights = terrain->GetHeights();
-    for (int i = game_world->idx1; i < game_world->idx2; i++) {
-        heights[i] = previous[i - game_world->idx1];
-    }
 }
 
 

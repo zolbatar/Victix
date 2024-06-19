@@ -46,7 +46,7 @@ public:
 
     void Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float width, float height);
 
-    void Process();
+    void Process(cairo_t *cr);
 
     std::list<std::unique_ptr<Object>> &GetObjects() { return objects; }
 };

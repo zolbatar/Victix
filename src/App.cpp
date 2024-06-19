@@ -76,7 +76,7 @@ void App::Go() {
 
         // Update things, process input etc.
         if (game_world != nullptr)
-            game_world->Process();
+            game_world->Process(cr);
 
         // Full screen window
         ImGuiViewport *main_viewport = ImGui::GetMainViewport();

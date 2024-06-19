@@ -107,7 +107,7 @@ void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float w
     ImGui::EndChild();
 }
 
-void World::Process() {
+void World::Process(cairo_t *cr) {
     ImGuiIO &io = ImGui::GetIO();
     ImVec2 pos = ImGui::GetMousePos();
 
@@ -168,7 +168,7 @@ void World::Process() {
         add_mode = false;
         float x = (pos.x - io.DisplaySize.x / 2) / state.scale + state.offset_x;
         float y = (io.DisplaySize.y / 2 - pos.y) / state.scale + state.offset_y;
-        Emplacement::AddEmplacement(x, y, true);
+        Emplacement::AddEmplacement(cr, x, y, true);
     }
 
     // Bounds
