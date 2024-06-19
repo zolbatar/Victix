@@ -2,8 +2,10 @@
 #include "Interface.h"
 
 extern std::unique_ptr<World> game_world;
+ImVec2 top_left;
+ImVec2 bottom_right;
 
-void RenderMinimap(cairo_t *cr, std::vector<double> &heights, WorldPosition &pos) {
+void RenderMinimap(cairo_t *cr, std::vector<double> &heights, WorldPosition &state) {
     ImGuiIO &io = ImGui::GetIO();
 
     const float divider = 4;
@@ -13,6 +15,10 @@ void RenderMinimap(cairo_t *cr, std::vector<double> &heights, WorldPosition &pos
     // Background
     cairo_save(cr);
     cairo_identity_matrix(cr);
+    top_left.x = io.DisplaySize.x - 32 - width;
+    bottom_right.x = io.DisplaySize.x - 32;
+    top_left.y = 24;
+    bottom_right.y = 24 + height;
     cairo_translate(cr, io.DisplaySize.x - 32 - width / 2, 24 + height);
     cairo_scale(cr, 1.0 / divider, -1.0 / divider);
     cairo_rectangle(cr,
@@ -46,8 +52,8 @@ void RenderMinimap(cairo_t *cr, std::vector<double> &heights, WorldPosition &pos
     }
 
     // Outline
-    float x1 = io.DisplaySize.x / 2 / pos.scale - pos.offset_x;
-    float x2 = io.DisplaySize.x / pos.scale;
+    float x1 = io.DisplaySize.x / 2 / state.scale - state.offset_x;
+    float x2 = io.DisplaySize.x / state.scale;
     cairo_move_to(cr, -x1, -Terrain::F_TERRAIN_HEIGHT);
     cairo_line_to(cr, -x1 + x2, -Terrain::F_TERRAIN_HEIGHT);
     cairo_move_to(cr, -x1, Terrain::F_TERRAIN_HEIGHT * 3);
@@ -56,4 +62,15 @@ void RenderMinimap(cairo_t *cr, std::vector<double> &heights, WorldPosition &pos
     cairo_set_line_width(cr, divider * 2);
     cairo_stroke(cr);
     cairo_restore(cr);
+}
+
+bool IsPointInRect(ImVec2 point, ImVec2 rectMin, ImVec2 rectMax) {
+    return point.x >= rectMin.x && point.x <= rectMax.x && point.y >= rectMin.y && point.y <= rectMax.y;
+}
+
+void MinimapCheckClick(ImVec2 &pos, WorldPosition &state) {
+    if (IsPointInRect(pos, top_left, bottom_right)) {
+        float fraction = (pos.x - top_left.x) / (bottom_right.x - top_left.x);
+        state.offset_x = (fraction * Terrain::F_TERRAIN_WIDTH) - (Terrain::F_TERRAIN_WIDTH / 2.0);
+    }
 }

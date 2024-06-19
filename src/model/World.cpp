@@ -51,7 +51,7 @@ World::World() {
     groundBody->CreateFixture(&groundBox, 0.0f);
 
     // Body
-    for (unsigned int i = 0; i < 250; i++) {
+/*    for (unsigned int i = 0; i < 250; i++) {
         int idx = disi(gen);
         int x = idx - Terrain::TERRAIN_WIDTH / 2;
         objects.emplace_back(std::make_unique<Generic>(x, (float) heights[idx] + 5 + dis(gen)));
@@ -60,7 +60,7 @@ World::World() {
     // Add emplacements
     int idx = disi(gen);
     int x = idx - Terrain::TERRAIN_WIDTH / 2;
-    objects.emplace_back(std::make_unique<MachineGun>(x, (float) heights[idx] + 5 + dis(gen)));
+    objects.emplace_back(std::make_unique<MachineGun>(x, (float) heights[idx] + 5 + dis(gen)));*/
 
     // Debug draw
     cairoDebugDraw.SetFlags(b2Draw::e_shapeBit | b2Draw::e_jointBit | b2Draw::e_aabbBit | b2Draw::e_pairBit |
@@ -244,6 +244,11 @@ void World::Process() {
     }
     state.offset_x += r_velocity;
     state.offset_x -= l_velocity;
+
+    // Click
+    if (ImGui::IsMouseClicked(ImGuiMouseButton_Left, false)) {
+        MinimapCheckClick(pos, state);
+    }
 
     // Off-screen?
     if (state.offset_x < -left_edge) {
