@@ -203,8 +203,12 @@ void World::Process() {
         state.offset_x = right_edge;
         l_velocity = 0;
         r_velocity = 0;
-    } else if (ImGui::IsKeyPressed(ImGuiKey_S, false)) {
+    } else if (ImGui::IsKeyPressed(ImGuiKey_D, false)) {
         state.offset_x = left_edge;
+        l_velocity = 0;
+        r_velocity = 0;
+    } else if (ImGui::IsKeyPressed(ImGuiKey_S, false)) {
+        state.offset_x = 0;
         l_velocity = 0;
         r_velocity = 0;
     }
