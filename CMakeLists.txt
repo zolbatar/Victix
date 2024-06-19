@@ -38,8 +38,6 @@ add_executable(${PROJECT_NAME}
         src/objects/Generic.h
         src/objects/Emplacement.cpp
         src/objects/Emplacement.h
-        src/objects/MachineGun.cpp
-        src/objects/MachineGun.h
         src/ui/Minimap.cpp
         src/ui/Minimap.h)
 

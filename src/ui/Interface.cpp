@@ -66,3 +66,17 @@ cairo_pattern_t *Interface::SetLinear(double cx, double cy, double length, doubl
     // Create a linear gradient pattern at the specified angle
     return cairo_pattern_create_linear(x1, y1, x2, y2);
 }
+
+// Easing function: easeInOutQuad
+// t: current time (in range [0, duration])
+// b: start value
+// c: change in value (end value - start value)
+// d: total duration
+double easeInOutQuad(double t, double b, double c, double d) {
+    t /= d / 2;
+    if (t < 1) {
+        return c / 2 * std::pow(t, 2) + b;
+    }
+    t--;
+    return -c / 2 * (t * (t - 2) - 1) + b;
+}

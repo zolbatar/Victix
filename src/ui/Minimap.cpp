@@ -2,11 +2,13 @@
 #include "Interface.h"
 
 extern std::unique_ptr<World> game_world;
+extern std::unique_ptr<Terrain> terrain;
 ImVec2 top_left;
 ImVec2 bottom_right;
 
-void RenderMinimap(cairo_t *cr, std::vector<double> &heights, WorldPosition &state) {
+void RenderMinimap(cairo_t *cr, WorldPosition &state) {
     ImGuiIO &io = ImGui::GetIO();
+    auto &heights = terrain->GetHeights();
 
     const float divider = 4;
     const float width = Terrain::F_TERRAIN_WIDTH / divider;
@@ -17,8 +19,8 @@ void RenderMinimap(cairo_t *cr, std::vector<double> &heights, WorldPosition &sta
     cairo_identity_matrix(cr);
     top_left.x = io.DisplaySize.x - 32 - width;
     bottom_right.x = io.DisplaySize.x - 32;
-    top_left.y = 24;
-    bottom_right.y = 24 + height;
+    top_left.y = 42;
+    bottom_right.y = 42 + height;
     cairo_translate(cr, io.DisplaySize.x - 32 - width / 2, 24 + height);
     cairo_scale(cr, 1.0 / divider, -1.0 / divider);
     cairo_rectangle(cr,
@@ -66,6 +68,10 @@ void RenderMinimap(cairo_t *cr, std::vector<double> &heights, WorldPosition &sta
 
 bool IsPointInRect(ImVec2 point, ImVec2 rectMin, ImVec2 rectMax) {
     return point.x >= rectMin.x && point.x <= rectMax.x && point.y >= rectMin.y && point.y <= rectMax.y;
+}
+
+bool MinimapCheckDrag(ImVec2 &pos, WorldPosition &state) {
+    return (IsPointInRect(pos, top_left, bottom_right));
 }
 
 void MinimapCheckClick(ImVec2 &pos, WorldPosition &state) {

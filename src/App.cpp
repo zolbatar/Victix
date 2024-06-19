@@ -5,7 +5,7 @@
 #include "backends/imgui_impl_glfw.h"
 #include "model/World.h"
 
-std::unique_ptr<World> game_world;
+std::unique_ptr<World> game_world = nullptr;
 
 App::App(GLFWwindow *window) : window(window) {
     ImGuiIO &io = ImGui::GetIO();
@@ -40,11 +40,11 @@ App::App(GLFWwindow *window) : window(window) {
     height = mode->height * Interface::GetDPIScaling();
     surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
     cr = cairo_create(surface);
-    render = Interface::CreateTexture(width, height, GL_NEAREST, nullptr);
-    bg = Interface::CreateTexture(width, height, GL_NEAREST, nullptr);
+    render = Interface::CreateTexture(width, height, GL_LINEAR, nullptr);
+    bg = Interface::CreateTexture(width, height, GL_LINEAR, nullptr);
+    cairo_set_antialias(cr, CAIRO_ANTIALIAS_BEST);
 
     // Sky
-    cairo_set_antialias(cr, CAIRO_ANTIALIAS_BEST);
     cairo_pattern_t *pat = Interface::SetLinear(width / 2, 0, height * 0.5, 90);
     cairo_pattern_add_color_stop_rgb(pat, 0.0, 55.0 / 255.0, 16.0 / 255.0, 102.0 / 255.0);
     cairo_pattern_add_color_stop_rgb(pat, 0.5, 255.0 / 255.0, 69.0 / 255.0, 157.0 / 255.0);
@@ -58,12 +58,9 @@ App::App(GLFWwindow *window) : window(window) {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height,
                  0, GL_BGRA, GL_UNSIGNED_BYTE,
                  cairo_image_surface_get_data(surface));
-
-    cairo_set_antialias(cr, CAIRO_ANTIALIAS_BEST);
 }
 
 void App::Go() {
-
     while (!glfwWindowShouldClose(window)) {
         // Poll and handle events (inputs, window resize, etc.)
         // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
@@ -100,9 +97,13 @@ void App::Go() {
                 ImVec2(1.0f, 1.0f),
                 IM_COL32(255, 255, 255, 255));
 
-        // Render world
-        if (game_world == nullptr)
+        // Build?
+        if (game_world == nullptr) {
             game_world = std::make_unique<World>();
+            game_world->Build();
+        }
+
+        // Render world
         game_world->Render(cr, surface, render, width, height);
 
         ImGui::End();

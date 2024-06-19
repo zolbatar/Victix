@@ -10,11 +10,17 @@
 #include <box2d/box2d.h>
 #include "../objects/Object.h"
 
+enum DragType {
+    NONE,
+    NORMAL,
+    MINIMAP
+};
+
 class World {
 private:
     WorldPosition state;
     ImVec2 last_drag;
-    bool dragging = false;
+    DragType dragging = DragType::NONE;
 
     // Smooth scroll animation
     double l_velocity = 0.0;
@@ -27,14 +33,13 @@ private:
     const float timeStep = 1.0f / 60.0f;
     const int32 velocityIterations = 6;
     const int32 positionIterations = 2;
-    b2Body *groundBody;
     CairoDebugDraw cairoDebugDraw;
     std::list<std::unique_ptr<Object>> objects;
 
-    void DoZoom(int vzoom);
-
 public:
     World();
+
+    void Build();
 
     void Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float width, float height);
 

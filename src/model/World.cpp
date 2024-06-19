@@ -2,15 +2,11 @@
 #include "imgui.h"
 #include "World.h"
 #include "../objects/Generic.h"
-#include "../objects/MachineGun.h"
+#include "../objects/Emplacement.h"
 #include "../ui/Minimap.h"
 
-Terrain terrain;
 std::unique_ptr<b2World> world;
-static std::random_device rd;  // Random device to seed the generator
-static std::mt19937 gen(rd()); // Standard Mersenne Twister engine seeded with rd()
-static std::uniform_real_distribution<> dis(0.0, 150.0);
-static std::uniform_int_distribution<> disi(0, Terrain::TERRAIN_WIDTH);
+std::unique_ptr<Terrain> terrain;
 
 // FPS
 auto lastTime = std::chrono::high_resolution_clock::now();
@@ -28,44 +24,20 @@ World::World() {
     // Box2D
     b2Vec2 gravity(0.0f, -10.0f);
     world = std::make_unique<b2World>(gravity);
-
-    // Ground
-    b2BodyDef groundBodyDef;
-    groundBodyDef.type = b2_staticBody;
-    groundBodyDef.position.Set(0.0f, 0.0f);
-    groundBody = world->CreateBody(&groundBodyDef);
-
-    // Ground shape
-    std::vector<double> &heights = terrain.GetHeights();
-    int hsize = (int) heights.size();
-    float hsize_half = heights.size() / 2;
-    b2Vec2 vertices[hsize + 2];
-    for (int i = 0; i < heights.size(); i++) {
-        float x = i - hsize_half;
-        vertices[hsize - i - 1].Set(x, heights[i]);
-    }
-    vertices[heights.size()].Set(-hsize_half, -Terrain::TERRAIN_HEIGHT);
-    vertices[heights.size() + 1].Set(hsize_half, -Terrain::TERRAIN_HEIGHT);
-    b2ChainShape groundBox;
-    groundBox.CreateLoop(vertices, hsize + 2);
-    groundBody->CreateFixture(&groundBox, 0.0f);
-
-    // Body
-/*    for (unsigned int i = 0; i < 250; i++) {
-        int idx = disi(gen);
-        int x = idx - Terrain::TERRAIN_WIDTH / 2;
-        objects.emplace_back(std::make_unique<Generic>(x, (float) heights[idx] + 5 + dis(gen)));
-    }
-
-    // Add emplacements
-    int idx = disi(gen);
-    int x = idx - Terrain::TERRAIN_WIDTH / 2;
-    objects.emplace_back(std::make_unique<MachineGun>(x, (float) heights[idx] + 5 + dis(gen)));*/
+    terrain = std::make_unique<Terrain>();
 
     // Debug draw
     cairoDebugDraw.SetFlags(b2Draw::e_shapeBit | b2Draw::e_jointBit | b2Draw::e_aabbBit | b2Draw::e_pairBit |
                             b2Draw::e_centerOfMassBit);
     world->SetDebugDraw(&cairoDebugDraw);
+}
+
+void World::Build() {
+    std::vector<double> &heights = terrain->GetHeights();
+
+/*    int idx = Terrain::TERRAIN_WIDTH / 2;
+    float x = idx - Terrain::TERRAIN_WIDTH / 2;
+    Emplacement::AddEmplacement(x, (float) heights[idx]);*/
 }
 
 void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float width, float height) {
@@ -93,7 +65,7 @@ void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float w
                     io.DisplaySize.x / 2 - (state.offset_x * state.scale),
                     io.DisplaySize.y / 2 + (state.offset_y * state.scale));
     cairo_scale(cr, state.scale, -state.scale);
-    terrain.Render(cr, state);
+    terrain->Render(cr, state);
 
     // Objects
     for (auto &obj: objects) {
@@ -102,7 +74,7 @@ void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float w
 
     // Minimap
     cairo_restore(cr);
-    RenderMinimap(cr, terrain.GetHeights(), state);
+    RenderMinimap(cr, state);
 
     // Render debug draw using Cairo
 /*    cairo_set_line_width(cr, 0.1);
@@ -128,23 +100,11 @@ void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float w
     ImGui::Text("Position: %.2f %.2f", state.offset_x, state.offset_y);
     ImGui::Text("Scale: %.2f", state.scale);
     ImGui::Text("Bodies: %d/%zu", world->GetBodyCount(), objects.size());
+    ImVec2 pos = ImGui::GetMousePos();
+    ImGui::Text("Mouse: %.2f %.2f", pos.x, pos.y);
     updateFPS();
     ImGui::PopStyleColor();
     ImGui::EndChild();
-}
-
-// Easing function: easeInOutQuad
-// t: current time (in range [0, duration])
-// b: start value
-// c: change in value (end value - start value)
-// d: total duration
-double easeInOutQuad(double t, double b, double c, double d) {
-    t /= d / 2;
-    if (t < 1) {
-        return c / 2 * std::pow(t, 2) + b;
-    }
-    t--;
-    return -c / 2 * (t * (t - 2) - 1) + b;
 }
 
 void World::Process() {
@@ -152,7 +112,7 @@ void World::Process() {
     ImVec2 pos = ImGui::GetMousePos();
 
     // Update
-    std::vector<double> &heights = terrain.GetHeights();
+    std::vector<double> &heights = terrain->GetHeights();
     objects.remove_if([](std::unique_ptr<Object> &obj) { return obj->Update(); });
     world->Step(timeStep, velocityIterations, positionIterations);
 
@@ -176,21 +136,36 @@ void World::Process() {
     }
 
     // Dragging
-    if (ImGui::IsMouseDragging(ImGuiMouseButton_Right)) {
-        ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
+    if (ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+        ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
         if (!dragging) {
-            dragging = true;
-            last_drag = drag_delta;
+            if (MinimapCheckDrag(pos, state)) {
+                dragging = DragType::MINIMAP;
+            } else {
+                dragging = DragType::NORMAL;
+                last_drag = drag_delta;
+            }
         } else {
-            float drag_scale = 1.0f / state.scale;
-            state.offset_x -= (drag_delta.x - last_drag.x) * drag_scale;
-            state.offset_y += (drag_delta.y - last_drag.y) * drag_scale;
-            l_velocity = 0;
-            r_velocity = 0;
-            last_drag = drag_delta;
+            if (dragging == DragType::MINIMAP) {
+                MinimapCheckClick(pos, state);
+            } else {
+                float drag_scale = 1.0f / state.scale;
+                state.offset_x -= (drag_delta.x - last_drag.x) * drag_scale;
+                state.offset_y += (drag_delta.y - last_drag.y) * drag_scale;
+                l_velocity = 0;
+                r_velocity = 0;
+                last_drag = drag_delta;
+            }
         }
     } else {
-        dragging = false;
+        dragging = DragType::NONE;
+    }
+
+    // Click?
+    if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+        float x = (pos.x - io.DisplaySize.x / 2) / state.scale + state.offset_x;
+        float y = (io.DisplaySize.y / 2 - pos.y) / state.scale + state.offset_y;
+        Emplacement::AddEmplacement(x, y, state);
     }
 
     // Bounds

@@ -1,20 +1,52 @@
 #include <random>
 #include "Terrain.h"
-#include "imgui.h"
 #include "../ui/Interface.h"
+#include "World.h"
+
+extern std::unique_ptr<b2World> world;
 
 unsigned int next_power_of_2(float x);
 
 static std::random_device rd;  // Random device to seed the generator
 static std::mt19937 gen(rd()); // Standard Mersenne Twister engine seeded with rd()
-static std::uniform_real_distribution<> dis(0.0, Terrain::TERRAIN_WIDTH); // Uniform distribution in the range [0, 1)
+static std::uniform_real_distribution<> dis(0.0, Terrain::F_TERRAIN_WIDTH); // Uniform distribution in the range [0, 1)
 
 void Terrain::GenerateTerrain(PerlinNoise &perlin) {
     heights.resize(TERRAIN_WIDTH);
     double y = dis(gen);
     for (int x = 0; x < TERRAIN_WIDTH; ++x) {
-        heights[x] = perlin.noise(x, y, FREQ, DEPTH) * SCALE * TERRAIN_HEIGHT;
+        double pn = perlin.noise(x, y, FREQ, DEPTH);
+        heights[x] = (pn * TERRAIN_HEIGHT);
+//        assert(heights[x] > 0);
     }
+
+    // Ground
+    b2BodyDef groundBodyDef;
+    groundBodyDef.type = b2_staticBody;
+    groundBodyDef.position.Set(0.0f, 0.0f);
+    groundBody = world->CreateBody(&groundBodyDef);
+
+    UpdateBox2D();
+}
+
+void Terrain::UpdateBox2D() {
+    if (fixture != nullptr) {
+        groundBody->DestroyFixture(fixture);
+    }
+
+    // Ground shape
+    int hsize = (int) heights.size();
+    float hsize_half = heights.size() / 2;
+    b2Vec2 vertices[hsize + 2];
+    for (int i = 0; i < heights.size(); i++) {
+        float x = i - hsize_half;
+        vertices[hsize - i - 1].Set(x, heights[i]);
+    }
+    vertices[heights.size()].Set(-hsize_half, -Terrain::TERRAIN_HEIGHT);
+    vertices[heights.size() + 1].Set(hsize_half, -Terrain::TERRAIN_HEIGHT);
+    b2ChainShape groundBox;
+    groundBox.CreateLoop(vertices, hsize + 2);
+    groundBody->CreateFixture(&groundBox, 0.0f);
 }
 
 Terrain::Terrain() {

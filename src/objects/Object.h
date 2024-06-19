@@ -3,7 +3,6 @@
 #include <memory>
 #include <box2d/box2d.h>
 #include <cairo.h>
-#include "../model/Terrain.h"
 
 class Object {
 protected:
@@ -18,7 +17,7 @@ public:
 
     virtual ~Object();
 
-    void Render(cairo_t *cr) const;
+    virtual void Render(cairo_t *cr) = 0;
 
     virtual bool Update() = 0;
 
