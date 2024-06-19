@@ -42,7 +42,7 @@ public:
 
     World();
 
-    void Build();
+    void Build(cairo_t *cr);
 
     void Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float width, float height);
 

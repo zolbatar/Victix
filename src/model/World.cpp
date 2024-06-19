@@ -18,7 +18,9 @@ void updateFPS();
 
 World::World() {
     ImGuiIO &io = ImGui::GetIO();
-    state.offset_x = 0.0f;
+    float ff = (io.DisplaySize.x / 2) / state.scale;
+    float left_edge = (float) Terrain::F_TERRAIN_WIDTH / 2.0f - ff;
+    state.offset_x = left_edge;
     state.offset_y = 0.0f;
 
     // Box2D
@@ -32,12 +34,12 @@ World::World() {
     world->SetDebugDraw(&cairoDebugDraw);
 }
 
-void World::Build() {
+void World::Build(cairo_t *cr) {
     std::vector<double> &heights = terrain->GetHeights();
 
-/*    int idx = Terrain::TERRAIN_WIDTH / 2;
-    float x = idx - Terrain::TERRAIN_WIDTH / 2;
-    Emplacement::AddEmplacement(x, (float) heights[idx]);*/
+    int idx = 32;
+    float x = idx - Terrain::F_TERRAIN_WIDTH / 2;
+    Emplacement::AddEmplacement(cr, x, (float) heights[idx], true);
 }
 
 void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float width, float height) {
@@ -119,10 +121,10 @@ void World::Process(cairo_t *cr) {
     // Zoom
     if (ImGui::IsKeyPressed(ImGuiKey_Z, false)) {
         state.zoom = 0;
-    } else if (ImGui::IsKeyPressed(ImGuiKey_X, false)) {
+/*    } else if (ImGui::IsKeyPressed(ImGuiKey_X, false)) {
         state.zoom = 1;
-/*    } else if (ImGui::IsKeyPressed(ImGuiKey_C, false)) {
-        state.zoom = 2;*/
+    } else if (ImGui::IsKeyPressed(ImGuiKey_C, false)) {
+        state.zoom = 2;
     } else if (io.MouseWheel != 0.0f) {
         if (io.MouseWheel < 0) {
             state.zoom--;
@@ -132,7 +134,7 @@ void World::Process(cairo_t *cr) {
             state.zoom++;
             if (state.zoom > 1)
                 state.zoom = 1;
-        }
+        }*/
     }
 
     // Dragging

@@ -100,7 +100,7 @@ void App::Go() {
         // Build?
         if (game_world == nullptr) {
             game_world = std::make_unique<World>();
-            game_world->Build();
+            game_world->Build(cr);
         }
 
         // Render world

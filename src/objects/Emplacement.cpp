@@ -47,7 +47,7 @@ void Emplacement::AddEmplacement(cairo_t *cr, float x, float y, bool final) {
     game_world->idx2 = round(game_world->idx + size / 2) + 4;
     int indices = game_world->idx2 - game_world->idx1;
 
-    // Do we have an existing one?
+    // Do we have an existing one, and do we have one close enough?
     for (auto &obj: game_world->GetObjects()) {
         if (obj->Type() == Type::EMPLACEMENT) {
             float x_diff = abs(x - obj->GetBody()->GetPosition().x);
