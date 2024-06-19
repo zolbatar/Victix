@@ -22,19 +22,20 @@ void Terrain::GenerateTerrain(PerlinNoise &perlin) {
 //        assert(heights[x] > 0);
     }
 
+    UpdateBox2D();
+}
+
+void Terrain::UpdateBox2D() {
+    if (groundBody != nullptr) {
+        world->DestroyBody(groundBody);
+//        groundBody->DestroyFixture(fixture);
+    }
+
     // Ground
     b2BodyDef groundBodyDef;
     groundBodyDef.type = b2_staticBody;
     groundBodyDef.position.Set(0.0f, 0.0f);
     groundBody = world->CreateBody(&groundBodyDef);
-
-    UpdateBox2D();
-}
-
-void Terrain::UpdateBox2D() {
-    if (fixture != nullptr) {
-        groundBody->DestroyFixture(fixture);
-    }
 
     // Ground shape
     int hsize = (int) heights.size();

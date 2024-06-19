@@ -32,16 +32,31 @@ void Emplacement::AddEmplacement(float x, float y, bool final) {
     // Work out index into height array
     ImGuiIO &io = ImGui::GetIO();
     game_world->idx = round(x + Terrain::F_TERRAIN_WIDTH / 2);
-    game_world->idx1 = round(game_world->idx - size / 2) - 2;
-    game_world->idx2 = round(game_world->idx + size / 2) + 2;
+
+    // Work out height
+    float height = y - heights[game_world->idx];
+
+    // Make sure height is valid
+    if (height > 50)
+        y = heights[game_world->idx] + 50;
+    else if (height < 0)
+        y = heights[game_world->idx];
+
+    // Range
+    game_world->idx1 = round(game_world->idx - size / 2) - 4;
+    game_world->idx2 = round(game_world->idx + size / 2) + 4;
+    int indices = game_world->idx2 - game_world->idx1;
 
     // Actually place?
     if (final) {
-//        game_world->GetObjects().emplace_back(std::make_unique<Emplacement>(x, y + 10));
-//        terrain->UpdateBox2D();
+        for (int i = game_world->idx1; i < game_world->idx2; i++) {
+            heights[i] = y - size / 2;
+        }
+        game_world->GetObjects().emplace_back(std::make_unique<Emplacement>(x, y + 10));
+        terrain->UpdateBox2D();
     } else {
         // Save previous
-        previous.reserve(game_world->idx2 - game_world->idx1);
+        previous.reserve(indices);
         for (int i = game_world->idx1; i < game_world->idx2; i++) {
             previous[i - game_world->idx1] = heights[i];
         }

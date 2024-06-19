@@ -72,13 +72,13 @@ void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float w
         obj->Render(cr);
     }
 
-    // Minimap
-    cairo_restore(cr);
-    RenderMinimap(cr, state);
-
     // Render debug draw using Cairo
 /*    cairo_set_line_width(cr, 0.1);
     world->DebugDraw();*/
+
+    // Minimap
+    cairo_restore(cr);
+    RenderMinimap(cr, state);
 
     // Write to texture and blit
     cairo_surface_flush(surface);
@@ -164,8 +164,7 @@ void World::Process() {
     // Click?
     if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
         add_mode = true;
-    }
-    if (add_mode && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+    } else if (add_mode && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
         add_mode = false;
         float x = (pos.x - io.DisplaySize.x / 2) / state.scale + state.offset_x;
         float y = (io.DisplaySize.y / 2 - pos.y) / state.scale + state.offset_y;
