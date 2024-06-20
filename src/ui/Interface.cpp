@@ -127,8 +127,7 @@ const char *blur_fragment_shader_src = R"(
     out vec4 FragColor;
 
     void main() {
-        FragColor=vec4(1.0, 1.0, 1.0, 1.0);
-/*        vec2 tex_offset = 1.0 / textureSize(image, 0); // gets size of single texel
+        vec2 tex_offset = 1.0 / textureSize(image, 0); // gets size of single texel
         vec3 result = texture(image, TexCoord).rgb * weight[0]; // current fragment's contribution
 
         if (horizontal) {
@@ -143,7 +142,7 @@ const char *blur_fragment_shader_src = R"(
             }
         }
 
-        FragColor = vec4(result, 1.0);*/
+        FragColor = vec4(result, 1.0);
     }
 )";
 
@@ -153,10 +152,8 @@ const char *final_fragment_shader_source = R"(
         uniform sampler2D verticalBlurredImage;
         out vec4 FragColor;
         void main() {
-            //vec3 color = texture(horizontalBlurredImage, TexCoord).rgb + texture(verticalBlurredImage, TexCoord).rgb;
-            //vec3 color = texture(horizontalBlurredImage, TexCoord).rgb;
-            //FragColor = vec4(color, 1.0);
-            FragColor=vec4(1.0, 1.0, 1.0, 1.0);
+            vec3 color = texture(horizontalBlurredImage, TexCoord).rgb + texture(verticalBlurredImage, TexCoord).rgb;
+            FragColor = vec4(color, 1.0);
         }
     )";
 
@@ -207,14 +204,15 @@ GLuint Interface::DoBlur(GLuint cairo_texture, int _width, int _height) {
     static GLfloat weight[5] = {0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216};
 
     // First pass: horizontal blur
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo_h);
     glClear(GL_COLOR_BUFFER_BIT);
     glUseProgram(blur_shader_program);
+    auto a = glGetUniformLocation(blur_shader_program, "horizontal");
+    auto b = glGetUniformLocation(blur_shader_program, "weight");
     glUniform1i(glGetUniformLocation(blur_shader_program, "horizontal"), 1);
     glUniform1fv(glGetUniformLocation(blur_shader_program, "weight"), 5, weight);
     glBindTexture(GL_TEXTURE_2D, cairo_texture);
     RenderQuad();
-    return blur_texture_h;
 
     // Second pass: vertical blur
     glBindFramebuffer(GL_FRAMEBUFFER, fbo_v);
@@ -235,6 +233,7 @@ GLuint Interface::DoBlur(GLuint cairo_texture, int _width, int _height) {
     glBindTexture(GL_TEXTURE_2D, blur_texture_v);
     RenderQuad();
 
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     return final_texture;
 }
 
@@ -312,9 +311,9 @@ void Interface::RenderQuad() {
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *) 0);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *) (2 * sizeof(float)));
-
+    glBindVertexArray(0);
+    glBindVertexArray(quadVAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
-
     glDeleteVertexArrays(1, &quadVAO);
     glDeleteBuffers(1, &quadVBO);
 }
