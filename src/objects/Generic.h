@@ -10,5 +10,5 @@ protected:
 public:
     void Render(cairo_t *cr) override;
 
-    Generic(float x, float y);
+    Generic(float x, float y, Player player);
 };

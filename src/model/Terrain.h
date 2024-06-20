@@ -9,7 +9,7 @@
 
 class Terrain {
 private:
-    const int DEPTH = 6;
+    const int DEPTH = 4;
     const float FREQ = 0.01f;
     std::vector<double> heights;
     b2Body *groundBody;

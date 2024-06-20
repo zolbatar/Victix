@@ -63,7 +63,7 @@ void Terrain::Render(cairo_t *cr, WorldPosition &state) {
         ImVec2 mouse_position = ImGui::GetMousePos();
         float x = (mouse_position.x - io.DisplaySize.x / 2) / state.scale + state.offset_x;
         float y = (io.DisplaySize.y / 2 - mouse_position.y) / state.scale + state.offset_y;
-        Emplacement::AddEmplacement(cr, x, y, false);
+        Emplacement::AddEmplacement(cr, x, y, false, Player::FRIENDLY);
     }
 
     // Do it

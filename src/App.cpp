@@ -4,8 +4,12 @@
 #include "backends/imgui_impl_opengl3.h"
 #include "backends/imgui_impl_glfw.h"
 #include "model/World.h"
+#include "Orbitron-Black.h"
+#include "Orbitron-Regular.h"
 
 std::unique_ptr<World> game_world = nullptr;
+ImFont *font_regular;
+ImFont *font_bold;
 
 App::App(GLFWwindow *window) : window(window) {
     ImGuiIO &io = ImGui::GetIO();
@@ -22,11 +26,12 @@ App::App(GLFWwindow *window) : window(window) {
     io.FontGlobalScale = 1.0f / dpi_scaling;
 
     // Set default UI font
-    io.Fonts->AddFontFromFileTTF(
-            "assets/fonts/Orbitron-Regular.ttf",
-            dpi_scaling * ui_font_size,
-            nullptr,
-            nullptr);
+    ImFontConfig fontConfig;
+    fontConfig.FontDataOwnedByAtlas = false;
+    font_regular = io.Fonts->AddFontFromMemoryTTF(Orbitron_Regular_ttf, Orbitron_Regular_ttf_len,
+                                                  dpi_scaling * ui_font_size, &fontConfig);
+    font_bold = io.Fonts->AddFontFromMemoryTTF(Orbitron_Black_ttf, Orbitron_Black_ttf_len, dpi_scaling * ui_font_size,
+                                               &fontConfig);
 
     // And build atlases
     io.Fonts->Build();
@@ -58,6 +63,9 @@ App::App(GLFWwindow *window) : window(window) {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height,
                  0, GL_BGRA, GL_UNSIGNED_BYTE,
                  cairo_image_surface_get_data(surface));
+
+    // Blur stuff
+    Interface::SetupBlur(width, height);
 }
 
 void App::Go() {
@@ -130,6 +138,7 @@ App::~App() {
     glBindTexture(GL_TEXTURE_2D, 0);
     glDeleteTextures(1, &render);
     glDeleteTextures(1, &bg);
+    Interface::ShutdownBlur();
 }
 
 ImVec4 HexToImVec4(uint32_t hex) {

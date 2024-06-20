@@ -4,15 +4,17 @@
 #include <box2d/box2d.h>
 #include <cairo.h>
 #include "Types.h"
+#include "Player.h"
 
 class Object {
 protected:
     b2Body *body = nullptr;
     float radius = 1.5f;
     float minimap_size = 5.0f;
+    Player player;
 
 public:
-    Object(float x, float y);
+    Object(float x, float y, Player player);
 
     Object(const Object &) = delete;
 

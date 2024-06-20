@@ -4,7 +4,7 @@ bool Generic::Update() {
     return Object::ImpactUpdate();
 }
 
-Generic::Generic(float x, float y) : Object(x, y) {
+Generic::Generic(float x, float y, Player player) : Object(x, y, player) {
     b2PolygonShape dynamicBox;
     dynamicBox.SetAsBox(0.5f, 0.5f);
     b2FixtureDef fixtureDef;

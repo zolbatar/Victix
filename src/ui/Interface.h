@@ -1,16 +1,21 @@
 #pragma once
 
-#include <string>
-#include "imgui.h"
 #include <OpenGL/gl.h>
+#include <string>
 #include <cairo.h>
-#include "backends/imgui_impl_opengl3.h"
+#include "imgui.h"
 
 class Interface {
 private:
     static float dpi;
     static float dpi_scaling;
     static int width, height;
+
+    // Blur
+    static GLuint blur_texture_h, blur_texture_v, final_texture;
+    static GLuint fbo_h, fbo_v, fbo_final;
+    static GLuint blur_shader_program;
+    static GLuint final_shader_program;
 
 public:
     static int LastTexWidth() { return width; }
@@ -32,4 +37,21 @@ public:
     static GLuint CreateTexture(int width, int height, GLint type, const GLvoid *pixels);
 
     static cairo_pattern_t *SetLinear(double cx, double cy, double length, double degrees);
+
+    static double easeInOutQuad(double t, double b, double c, double d);
+
+    static GLuint CreateFBO(GLuint texture);
+
+    static void SetupBlur(int _width, int _height);
+
+    static void ShutdownBlur();
+
+    static GLuint DoBlur(GLuint cairo_texture);
+
+    static GLuint CreateShaderProgram(const char *vertexShaderSource, const char *fragmentShaderSource);
+
+    static GLuint CompileShader(const char *shaderSource, GLenum shaderType);
+
+    static void RenderQuad();
+
 };

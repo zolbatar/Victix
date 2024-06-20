@@ -4,9 +4,12 @@
 #include "../objects/Generic.h"
 #include "../objects/Emplacement.h"
 #include "../ui/Minimap.h"
+#include "../ui/Interface.h"
 
 std::unique_ptr<b2World> world;
 std::unique_ptr<Terrain> terrain;
+extern ImFont *font_regular;
+extern ImFont *font_bold;
 
 // FPS
 auto lastTime = std::chrono::high_resolution_clock::now();
@@ -39,7 +42,7 @@ void World::Build(cairo_t *cr) {
 
     int idx = 32;
     float x = idx - Terrain::F_TERRAIN_WIDTH / 2;
-    Emplacement::AddEmplacement(cr, x, (float) heights[idx], true);
+    Emplacement::AddEmplacement(cr, x, (float) heights[idx] + 5, true, Player::FRIENDLY);
 }
 
 void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float width, float height) {
@@ -88,17 +91,27 @@ void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float w
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height,
                  0, GL_BGRA, GL_UNSIGNED_BYTE,
                  cairo_image_surface_get_data(surface));
+
+    // Blur
+    GLuint out = Interface::DoBlur(render);
+
     ImGui::GetWindowDrawList()->AddImage(
-            reinterpret_cast<ImTextureID>(render),
+            reinterpret_cast<ImTextureID>(out),
             ImVec2(0.0f, 0.0f),
             ImVec2(width, height),
             ImVec2(0.0f, 0.0f),
             ImVec2(1.0f, 1.0f),
             IM_COL32(255, 255, 255, 255));
 
-    ImGui::BeginChild("Position", ImVec2(200, 200), false,
+    ImGui::BeginChild("Position", ImVec2(640, 360), false,
                       ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration);
     ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 253, 208, 255));
+    ImGui::TextUnformatted("Credits: ");
+    ImGui::PushFont(font_bold);
+    ImGui::SameLine();
+    ImGui::SetCursorScreenPos(ImVec2(150.0f, ImGui::GetCursorScreenPos().y));
+    ImGui::Text("%d", state.credits);
+    ImGui::PopFont();
     ImGui::Text("Position: %.2f %.2f", state.offset_x, state.offset_y);
     ImGui::Text("Scale: %.2f", state.scale);
     ImGui::Text("Bodies: %d/%zu", world->GetBodyCount(), objects.size());
@@ -173,7 +186,7 @@ void World::Process(cairo_t *cr) {
         add_mode = false;
         float x = (pos.x - io.DisplaySize.x / 2) / state.scale + state.offset_x;
         float y = (io.DisplaySize.y / 2 - pos.y) / state.scale + state.offset_y;
-        Emplacement::AddEmplacement(cr, x, y, true);
+        Emplacement::AddEmplacement(cr, x, y, true, Player::FRIENDLY);
     }
 
     // Bounds

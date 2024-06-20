@@ -6,11 +6,12 @@
 extern std::unique_ptr<b2World> world;
 extern std::unique_ptr<Terrain> terrain;
 
-Object::Object(float x, float y) {
+Object::Object(float x, float y, Player player) {
     b2BodyDef bodyDef;
     bodyDef.type = b2_dynamicBody;
     bodyDef.position.Set(x, y);
     body = world->CreateBody(&bodyDef);
+    this->player = player;
 }
 
 Object::~Object() {

@@ -7,7 +7,7 @@ extern std::unique_ptr<World> game_world;
 extern std::unique_ptr<Terrain> terrain;
 float Emplacement::size = 15.0;
 
-Emplacement::Emplacement(float x, float y) : Object(x, y) {
+Emplacement::Emplacement(float x, float y, Player player) : Object(x, y, player) {
     b2Vec2 vertices[4];
     vertices[0].Set(size * 0.5f, -size * 0.5f);
     vertices[1].Set(size * 0.3f, size * 0.5f);
@@ -22,7 +22,7 @@ Emplacement::Emplacement(float x, float y) : Object(x, y) {
     body->CreateFixture(&fixtureDef);
 }
 
-void Emplacement::AddEmplacement(cairo_t *cr, float x, float y, bool final) {
+void Emplacement::AddEmplacement(cairo_t *cr, float x, float y, bool final, Player player) {
     auto &heights = terrain->GetHeights();
 
     // Align X
@@ -39,8 +39,8 @@ void Emplacement::AddEmplacement(cairo_t *cr, float x, float y, bool final) {
     // Make sure height is valid
     if (height > 50)
         y = heights[game_world->idx] + 50;
-    else if (height < 0)
-        y = heights[game_world->idx];
+    else if (height < -10)
+        y = heights[game_world->idx] - 10;
 
     // Range
     game_world->idx1 = round(game_world->idx - size / 2) - 4;
@@ -59,7 +59,7 @@ void Emplacement::AddEmplacement(cairo_t *cr, float x, float y, bool final) {
                     previous[i - game_world->idx1] = (float) heights[i];
                 }
 
-                Emplacement::RenderInternal(cr, x, y, 0, true, true, false);
+                Emplacement::RenderInternal(cr, x, y, 0, player, true, false);
                 return;
             }
         }
@@ -70,7 +70,7 @@ void Emplacement::AddEmplacement(cairo_t *cr, float x, float y, bool final) {
         for (int i = game_world->idx1; i < game_world->idx2; i++) {
             heights[i] = y - size / 2;
         }
-        game_world->GetObjects().emplace_back(std::make_unique<Emplacement>(x, y + 10));
+        game_world->GetObjects().emplace_back(std::make_unique<Emplacement>(x, y + 10, player));
         terrain->UpdateBox2D();
     } else {
         // Save previous
@@ -84,7 +84,7 @@ void Emplacement::AddEmplacement(cairo_t *cr, float x, float y, bool final) {
             heights[i] = y - size / 2;
         }
 
-        Emplacement::RenderInternal(cr, x, y, 0, true, true, true);
+        Emplacement::RenderInternal(cr, x, y, 0, player, true, true);
     }
 }
 
@@ -96,7 +96,7 @@ void Emplacement::Render(cairo_t *cr) {
     float x = body->GetPosition().x;
     float y = body->GetPosition().y;
     float a = body->GetAngle();
-    RenderInternal(cr, x, y, a, true, false, true);
+    RenderInternal(cr, x, y, a, player, false, true);
 }
 
 void Emplacement::Clear() {
@@ -111,10 +111,10 @@ void Emplacement::Restore() {
 }
 
 Type Emplacement::Type() {
-    return EMPLACEMENT;
+    return Type::EMPLACEMENT;
 }
 
-void Emplacement::RenderInternal(cairo_t *cr, float x, float y, float a, bool is_player, bool outline, bool valid) {
+void Emplacement::RenderInternal(cairo_t *cr, float x, float y, float a, Player player, bool outline, bool valid) {
     cairo_save(cr);
     cairo_translate(cr, x, y);
     cairo_rotate(cr, a);
@@ -126,7 +126,7 @@ void Emplacement::RenderInternal(cairo_t *cr, float x, float y, float a, bool is
     cairo_close_path(cr);
     cairo_path_t *path = cairo_copy_path(cr); // Save for outline
     if (!outline) {
-        if (is_player)
+        if (player == Player::FRIENDLY)
             cairo_set_source_rgb(cr, 0.0, 0.0, 0.25);
         else
             cairo_set_source_rgb(cr, 0.25, 0.0, 0.0);
@@ -135,7 +135,7 @@ void Emplacement::RenderInternal(cairo_t *cr, float x, float y, float a, bool is
 
     // Outline
     cairo_append_path(cr, path);
-    if (is_player)
+    if (player == Player::FRIENDLY)
         cairo_set_source_rgba(cr, 0.0 / 255.0, 191.0 / 255.0, 255.0 / 255.0, valid ? 1.0 : 0.5);
     else
         cairo_set_source_rgba(cr, 220.0 / 255.0, 20.0 / 255.0, 60.0 / 255.0, valid ? 1.0 : 0.5);

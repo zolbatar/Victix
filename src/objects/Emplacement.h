@@ -5,18 +5,17 @@
 class Emplacement : public Object {
 protected:
     static float size;
-    bool is_player = true;
 
-    static void RenderInternal(cairo_t *cr, float x, float y, float a, bool is_player, bool outline, bool valid);
+    static void RenderInternal(cairo_t *cr, float x, float y, float a, Player player, bool outline, bool valid);
 
 public:
-    Emplacement(float x, float y);
+    Emplacement(float x, float y, Player player);
 
     bool Update() override;
 
     enum Type Type() override;
 
-    static void AddEmplacement(cairo_t *cr, float x, float y, bool final);
+    static void AddEmplacement(cairo_t *cr, float x, float y, bool final, Player player);
 
     static void Clear();
 

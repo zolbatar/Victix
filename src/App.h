@@ -15,7 +15,7 @@ private:
     GLuint render;
     GLuint bg;
     int width, height;
-    const float ui_font_size = 18.0f;
+    const float ui_font_size = 24.0f;
 
 public:
     App(GLFWwindow *window);
