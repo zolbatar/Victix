@@ -10,18 +10,18 @@ void RenderMinimap(cairo_t *cr, WorldPosition &state) {
     ImGuiIO &io = ImGui::GetIO();
     auto &heights = terrain->GetHeights();
 
-    const float divider = 4;
+    const float divider = 2;
     const float width = Terrain::F_TERRAIN_WIDTH / divider;
     const float height = Terrain::F_TERRAIN_HEIGHT * 4 / divider;
 
     // Background
     cairo_save(cr);
     cairo_identity_matrix(cr);
-    top_left.x = io.DisplaySize.x - 32 - width;
-    bottom_right.x = io.DisplaySize.x - 32;
+    top_left.x = io.DisplaySize.x * Interface::GetDPIScaling() - 32 - width;
+    bottom_right.x = io.DisplaySize.x * Interface::GetDPIScaling() - 32;
     top_left.y = 42;
     bottom_right.y = 42 + height;
-    cairo_translate(cr, io.DisplaySize.x - 32 - width / 2, 24 + height);
+    cairo_translate(cr, io.DisplaySize.x * Interface::GetDPIScaling() - 32 - width / 2, 24 + height);
     cairo_scale(cr, 1.0 / divider, -1.0 / divider);
     cairo_rectangle(cr,
                     -Terrain::F_TERRAIN_WIDTH / 2, -Terrain::F_TERRAIN_HEIGHT * 1,
@@ -55,7 +55,7 @@ void RenderMinimap(cairo_t *cr, WorldPosition &state) {
 
     // Outline
     float x1 = io.DisplaySize.x / 2 / state.scale - state.offset_x;
-    float x2 = io.DisplaySize.x / state.scale;
+    float x2 = io.DisplaySize.x / 2;
     cairo_move_to(cr, -x1, -Terrain::F_TERRAIN_HEIGHT);
     cairo_line_to(cr, -x1 + x2, -Terrain::F_TERRAIN_HEIGHT);
     cairo_move_to(cr, -x1, Terrain::F_TERRAIN_HEIGHT * 3);

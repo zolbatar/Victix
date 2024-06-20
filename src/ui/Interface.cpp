@@ -3,6 +3,7 @@
 #include <string>
 #include "Interface.h"
 #include "imgui.h"
+#include "Shaders.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 
@@ -108,76 +109,28 @@ GLuint Interface::CreateFBO(GLuint texture) {
     return fbo;
 }
 
-const char *blur_vertex_shader_src = R"(
-    in vec2 inPos;
-    in vec2 inTexCoord;
-    out vec2 TexCoord;
-
-    void main() {
-        gl_Position = vec4(inPos, 0.0, 1.0);
-        TexCoord = inTexCoord;
-    }
-)";
-
-const char *blur_fragment_shader_src = R"(
-    in vec2 TexCoord;
-    uniform sampler2D image;
-    uniform bool horizontal;
-    uniform float weight[5];
-    out vec4 FragColor;
-
-    void main() {
-        vec2 tex_offset = 1.0 / textureSize(image, 0); // gets size of single texel
-        vec3 result = texture(image, TexCoord).rgb * weight[0]; // current fragment's contribution
-
-        if (horizontal) {
-            for (int i = 1; i < 5; ++i) {
-                result += texture(image, TexCoord + vec2(tex_offset.x * i, 0.0)).rgb * weight[i];
-                result += texture(image, TexCoord - vec2(tex_offset.x * i, 0.0)).rgb * weight[i];
-            }
-        } else {
-            for (int i = 1; i < 5; ++i) {
-                result += texture(image, TexCoord + vec2(0.0, tex_offset.y * i)).rgb * weight[i];
-                result += texture(image, TexCoord - vec2(0.0, tex_offset.y * i)).rgb * weight[i];
-            }
-        }
-
-        FragColor = vec4(result, 1.0);
-    }
-)";
-
-const char *final_fragment_shader_source = R"(
-        in vec2 TexCoord;
-        uniform sampler2D horizontalBlurredImage;
-        uniform sampler2D verticalBlurredImage;
-        out vec4 FragColor;
-        void main() {
-            vec3 color = texture(horizontalBlurredImage, TexCoord).rgb + texture(verticalBlurredImage, TexCoord).rgb;
-            FragColor = vec4(color, 1.0);
-        }
-    )";
-
 void Interface::SetupBlur(int _width, int _height) {
     glGenTextures(1, &blur_texture_h);
     glGenTextures(1, &blur_texture_v);
     glGenTextures(1, &final_texture);
 
-    GLint format = GL_RGB;
+    GLint format1 = GL_RGBA;
+    GLint format2 = GL_BGRA;
 
     // Set up blur textures
     glBindTexture(GL_TEXTURE_2D, blur_texture_h);
-    glTexImage2D(GL_TEXTURE_2D, 0, format, _width, _height, 0, format, GL_UNSIGNED_BYTE, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, format1, _width, _height, 0, format2, GL_UNSIGNED_BYTE, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     glBindTexture(GL_TEXTURE_2D, blur_texture_v);
-    glTexImage2D(GL_TEXTURE_2D, 0, format, _width, _height, 0, format, GL_UNSIGNED_BYTE, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, format1, _width, _height, 0, format2, GL_UNSIGNED_BYTE, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     // Setup final texture
     glBindTexture(GL_TEXTURE_2D, final_texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, format, _width, _height, 0, format, GL_UNSIGNED_BYTE, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, format1, _width, _height, 0, format2, GL_UNSIGNED_BYTE, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -205,6 +158,7 @@ GLuint Interface::DoBlur(GLuint cairo_texture, int _width, int _height) {
 
     // First pass: horizontal blur
     glBindFramebuffer(GL_FRAMEBUFFER, fbo_h);
+    glViewport(0, 0, _width, _height);
     glClear(GL_COLOR_BUFFER_BIT);
     glUseProgram(blur_shader_program);
     auto a = glGetUniformLocation(blur_shader_program, "horizontal");
@@ -216,6 +170,7 @@ GLuint Interface::DoBlur(GLuint cairo_texture, int _width, int _height) {
 
     // Second pass: vertical blur
     glBindFramebuffer(GL_FRAMEBUFFER, fbo_v);
+    glViewport(0, 0, _width, _height);
     glClear(GL_COLOR_BUFFER_BIT);
     glUseProgram(blur_shader_program);
     glUniform1i(glGetUniformLocation(blur_shader_program, "horizontal"), 0);
@@ -225,6 +180,7 @@ GLuint Interface::DoBlur(GLuint cairo_texture, int _width, int _height) {
 
     // Final render: combine original and blurred textures
     glBindFramebuffer(GL_FRAMEBUFFER, fbo_final);
+    glViewport(0, 0, _width, _height);
     glClear(GL_COLOR_BUFFER_BIT);
     glUseProgram(final_shader_program);
     glActiveTexture(GL_TEXTURE0);
@@ -269,7 +225,6 @@ GLuint Interface::CompileShader(const char *shaderSource, GLenum shaderType) {
     glShaderSource(shader, 1, &shaderSource, nullptr);
     glCompileShader(shader);*/
 
-
     const GLchar *fragment_shader_with_version[2] = {glsl_version_init, shaderSource};
     GLuint shader = glCreateShader(shaderType);
     glShaderSource(shader, 2, fragment_shader_with_version, nullptr);
@@ -311,7 +266,6 @@ void Interface::RenderQuad() {
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *) 0);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *) (2 * sizeof(float)));
-    glBindVertexArray(0);
     glBindVertexArray(quadVAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glDeleteVertexArrays(1, &quadVAO);

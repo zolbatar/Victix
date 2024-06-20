@@ -7,7 +7,9 @@
 
 int window_width = 1280;
 int window_height = 720;
+
 void glfw_scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
+
 char *glsl_version_init;
 
 #if defined(IMGUI_IMPL_OPENGL_ES2)
@@ -75,7 +77,7 @@ int main() {
 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window, true);
-    glsl_version_init = (char *)glsl_version;
+    glsl_version_init = (char *) glsl_version;
     ImGui_ImplOpenGL3_Init(glsl_version);
     glfwSetScrollCallback(window, glfw_scroll_callback);
 

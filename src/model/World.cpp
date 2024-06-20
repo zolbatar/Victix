@@ -19,10 +19,12 @@ auto startTime = std::chrono::high_resolution_clock::now();
 
 void updateFPS();
 
-World::World() {
+World::World(float scale) {
+    this->state.scale = scale;
     ImGuiIO &io = ImGui::GetIO();
-    float ff = (io.DisplaySize.x / 2) / state.scale;
-    float left_edge = (float) Terrain::F_TERRAIN_WIDTH / 2.0f - ff;
+    ff = 0.0;// (io.DisplaySize.x  / 2) / state.scale;
+    left_edge = Terrain::F_TERRAIN_WIDTH / 2.0f / state.scale - ff;
+    right_edge = -(Terrain::F_TERRAIN_WIDTH - state.scale) / 2.0f + ff;
     state.offset_x = left_edge;
     state.offset_y = 0.0f;
 
@@ -48,16 +50,7 @@ void World::Build(cairo_t *cr) {
 void World::PreRender(cairo_t *cr, cairo_surface_t *surface, GLuint render, float width, float height) {
     ImGuiIO &io = ImGui::GetIO();
     cairoDebugDraw.SetCR(cr);
-    switch (state.zoom) {
-        case 0:
-            state.scale = io.DisplaySize.y / (Terrain::F_TERRAIN_HEIGHT * 2);
-            state.offset_y = 0;//Terrain::F_TERRAIN_HEIGHT;
-            break;
-        case 1:
-            state.scale = io.DisplaySize.y / (Terrain::F_TERRAIN_HEIGHT * 6);
-            state.offset_y = Terrain::F_TERRAIN_HEIGHT * 2;
-            break;
-    }
+    state.offset_y = 0;
 
     // Clear the surface with a transparent color
     cairo_set_source_rgba(cr, 0.0, 0.0, 0.0, 0.0); // Fully transparent
@@ -68,7 +61,7 @@ void World::PreRender(cairo_t *cr, cairo_surface_t *surface, GLuint render, floa
     cairo_save(cr);
     cairo_translate(cr,
                     io.DisplaySize.x / 2 - (state.offset_x * state.scale),
-                    io.DisplaySize.y / 2 + (state.offset_y * state.scale));
+                    io.DisplaySize.y + (2 * Terrain::F_TERRAIN_HEIGHT * state.scale));
     cairo_scale(cr, state.scale, -state.scale);
     terrain->Render(cr, state);
 
@@ -93,14 +86,13 @@ void World::PreRender(cairo_t *cr, cairo_surface_t *surface, GLuint render, floa
                  cairo_image_surface_get_data(surface));
 
     // Blur
-    auto out = Interface::DoBlur(render, width, height);
+//    auto out = Interface::DoBlur(render, width, height);
     ImGui::GetWindowDrawList()->AddImage(
-            reinterpret_cast<ImTextureID>(out),
+            reinterpret_cast<ImTextureID>(render),
             ImVec2(0.0f, 0.0f),
             ImVec2(width, height),
             ImVec2(0.0f, 0.0f),
-            ImVec2(1.0f, 1.0f),
-            IM_COL32(255, 255, 255, 255));
+            ImVec2(Interface::GetDPIScaling(), Interface::GetDPIScaling()));
 
     ImGui::BeginChild("Position", ImVec2(640, 360), false,
                       ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration);
@@ -129,25 +121,6 @@ void World::Process(cairo_t *cr) {
     std::vector<double> &heights = terrain->GetHeights();
     objects.remove_if([](std::unique_ptr<Object> &obj) { return obj->Update(); });
     world->Step(timeStep, velocityIterations, positionIterations);
-
-    // Zoom
-    if (ImGui::IsKeyPressed(ImGuiKey_Z, false)) {
-        state.zoom = 0;
-/*    } else if (ImGui::IsKeyPressed(ImGuiKey_X, false)) {
-        state.zoom = 1;
-    } else if (ImGui::IsKeyPressed(ImGuiKey_C, false)) {
-        state.zoom = 2;
-    } else if (io.MouseWheel != 0.0f) {
-        if (io.MouseWheel < 0) {
-            state.zoom--;
-            if (state.zoom < 0)
-                state.zoom = 0;
-        } else {
-            state.zoom++;
-            if (state.zoom > 1)
-                state.zoom = 1;
-        }*/
-    }
 
     // Dragging
     if (ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
@@ -187,11 +160,6 @@ void World::Process(cairo_t *cr) {
         float y = (io.DisplaySize.y / 2 - pos.y) / state.scale + state.offset_y;
         Emplacement::AddEmplacement(cr, x, y, true, Player::FRIENDLY);
     }
-
-    // Bounds
-    float ff = (io.DisplaySize.x / 2) / state.scale;
-    float left_edge = (float) Terrain::F_TERRAIN_WIDTH / 2.0f - ff;
-    float right_edge = (float) -(Terrain::F_TERRAIN_WIDTH - state.scale) / 2.0f + ff;
 
     // Move?
     if (ImGui::IsKeyPressed(ImGuiKey_A, false)) {

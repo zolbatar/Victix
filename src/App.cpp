@@ -53,7 +53,7 @@ App::App(GLFWwindow *window) : window(window) {
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_BEST);
 
     // Sky
-    cairo_pattern_t *pat = Interface::SetLinear(width / 2, 0, height * 0.5, 90);
+    cairo_pattern_t *pat = Interface::SetLinear(width / 2, 0, height * 1.8, 90);
     cairo_pattern_add_color_stop_rgb(pat, 0.0, 55.0 / 255.0, 16.0 / 255.0, 102.0 / 255.0);
     cairo_pattern_add_color_stop_rgb(pat, 0.5, 255.0 / 255.0, 69.0 / 255.0, 157.0 / 255.0);
     cairo_pattern_add_color_stop_rgb(pat, 1.0, 255.0 / 255.0, 144.0 / 255.0, 0.0 / 255.0);
@@ -80,16 +80,18 @@ void App::Go() {
         // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
         glfwPollEvents();
 
-        // Build?
-        if (game_world == nullptr) {
-            game_world = std::make_unique<World>();
-            game_world->Build(cr);
-        }
-
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+
+        // Build?
+        if (game_world == nullptr) {
+            ImGuiIO &io = ImGui::GetIO();
+            float scale = io.DisplaySize.y / (Terrain::F_TERRAIN_HEIGHT * 3);
+            game_world = std::make_unique<World>(scale);
+            game_world->Build(cr);
+        }
 
         // Update things, process input etc.
         if (game_world != nullptr)
@@ -111,8 +113,7 @@ void App::Go() {
                 ImVec2(0.0f, 0.0f),
                 ImVec2(width, height),
                 ImVec2(0.0f, 0.0f),
-                ImVec2(1.0f, 1.0f),
-                IM_COL32(255, 255, 255, 255));
+                ImVec2(Interface::GetDPIScaling(), Interface::GetDPIScaling()));
 
         // Render world
         game_world->PreRender(cr, surface, render, width, height);

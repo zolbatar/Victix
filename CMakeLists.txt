@@ -41,7 +41,8 @@ add_executable(${PROJECT_NAME}
         src/ui/Minimap.cpp
         src/ui/Minimap.h
         src/objects/Types.h
-        src/objects/Player.h)
+        src/objects/Player.h
+        src/ui/Shaders.h)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
         ${CMAKE_SOURCE_DIR}/src/imgui)
