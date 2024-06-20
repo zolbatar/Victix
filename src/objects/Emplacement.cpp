@@ -1,3 +1,4 @@
+#include <chrono>
 #include "Emplacement.h"
 #include "../model/World.h"
 #include "Generic.h"
@@ -26,14 +27,15 @@ void Emplacement::AddEmplacement(cairo_t *cr, float x, float y, bool final, Play
     auto &heights = terrain->GetHeights();
 
     // Align X
+    ImGuiIO &io = ImGui::GetIO();
     x = round(x);
     y = round(y);
 
     // Work out index into height array
-    ImGuiIO &io = ImGui::GetIO();
     game_world->idx = round(x + Terrain::F_TERRAIN_WIDTH / 2);
 
     // Work out height
+    y -= Terrain::TERRAIN_HEIGHT;
     float height = y - heights[game_world->idx];
 
     // Make sure height is valid
@@ -136,19 +138,23 @@ void Emplacement::RenderInternal(cairo_t *cr, float x, float y, float a, Player 
     // Outline
     cairo_append_path(cr, path);
     if (player == Player::FRIENDLY)
-        cairo_set_source_rgba(cr, 0.0 / 255.0, 191.0 / 255.0, 255.0 / 255.0, valid ? 1.0 : 0.5);
+        cairo_set_source_rgba(cr, 0.0 / 255.0, 0.0 / 255.0, 255.0 / 255.0, valid ? 1.0 : 0.5);
     else
-        cairo_set_source_rgba(cr, 220.0 / 255.0, 20.0 / 255.0, 60.0 / 255.0, valid ? 1.0 : 0.5);
+        cairo_set_source_rgba(cr, 255.0 / 255.0, 0.0 / 255.0, 0.0 / 255.0, valid ? 1.0 : 0.5);
     if (outline) {
         // Define the dash pattern (dash length, gap length)
-        double dashes[] = {1.0, 1.0};
+        double dashes[] = {1.0, 3.0};
         int num_dashes = sizeof(dashes) / sizeof(dashes[0]);
-        double offset = 0.0; // Start point of the dash pattern
+        auto time = std::chrono::system_clock::now(); // Get the current time
+        auto since_epoch = time.time_since_epoch();   // Get the duration since epoch
+        auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(since_epoch);
+        double offset = millis.count() / 100.0; // Start point of the dash pattern
 
         // Set the dash pattern
         cairo_set_dash(cr, dashes, num_dashes, offset);
+        cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
     }
-    cairo_set_line_width(cr, 1.0);
+    cairo_set_line_width(cr, 1.5);
     cairo_stroke(cr);
     cairo_restore(cr);
 }

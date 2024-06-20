@@ -61,8 +61,8 @@ void Terrain::Render(cairo_t *cr, WorldPosition &state) {
     if (game_world->add_mode) {
         ImGuiIO &io = ImGui::GetIO();
         ImVec2 mouse_position = ImGui::GetMousePos();
-        float x = (mouse_position.x - io.DisplaySize.x / 2) / state.scale + state.offset_x;
-        float y = (io.DisplaySize.y / 2 - mouse_position.y) / state.scale + state.offset_y;
+        float x = (mouse_position.x - io.DisplaySize.x / 2) * Interface::GetDPIScaling() / state.scale + state.offset_x;
+        float y = (io.DisplaySize.y - mouse_position.y) * Interface::GetDPIScaling() / state.scale + state.offset_y;
         Emplacement::AddEmplacement(cr, x, y, false, Player::FRIENDLY);
     }
 
@@ -85,7 +85,7 @@ void Terrain::Render(cairo_t *cr, WorldPosition &state) {
     // Outline
     cairo_append_path(cr, path);
     cairo_set_source_rgb(cr, 0.0 / 255.0, 255.0 / 255.0, 255.0 / 255.0);
-    cairo_set_line_width(cr, 1.5);
+    cairo_set_line_width(cr, 1.0);
     cairo_stroke(cr);
 
     if (game_world->add_mode) {

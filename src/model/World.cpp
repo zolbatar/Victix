@@ -22,9 +22,9 @@ void updateFPS();
 World::World(float scale) {
     this->state.scale = scale;
     ImGuiIO &io = ImGui::GetIO();
-    ff = 0.0;// (io.DisplaySize.x  / 2) / state.scale;
-    left_edge = Terrain::F_TERRAIN_WIDTH / 2.0f / state.scale - ff;
-    right_edge = -(Terrain::F_TERRAIN_WIDTH - state.scale) / 2.0f + ff;
+    float half_width = (io.DisplaySize.x * Interface::GetDPIScaling() / 2) / state.scale;
+    left_edge = -Terrain::F_TERRAIN_WIDTH / 2.0f + half_width;
+    right_edge = Terrain::F_TERRAIN_WIDTH / 2.0f - half_width;
     state.offset_x = left_edge;
     state.offset_y = 0.0f;
 
@@ -60,7 +60,7 @@ void World::PreRender(cairo_t *cr, cairo_surface_t *surface, GLuint render, floa
     // Terrain
     cairo_save(cr);
     cairo_translate(cr,
-                    io.DisplaySize.x / 2 - (state.offset_x * state.scale),
+                    io.DisplaySize.x - (state.offset_x * state.scale),
                     io.DisplaySize.y + (2 * Terrain::F_TERRAIN_HEIGHT * state.scale));
     cairo_scale(cr, state.scale, -state.scale);
     terrain->Render(cr, state);
@@ -136,7 +136,7 @@ void World::Process(cairo_t *cr) {
             if (dragging == DragType::MINIMAP) {
                 MinimapCheckClick(pos, state);
             } else {
-                float drag_scale = 1.0f / state.scale;
+                float drag_scale = 1.0f / state.scale * Interface::GetDPIScaling();
                 state.offset_x -= (drag_delta.x - last_drag.x) * drag_scale;
                 state.offset_y += (drag_delta.y - last_drag.y) * drag_scale;
                 l_velocity = 0;
@@ -156,8 +156,8 @@ void World::Process(cairo_t *cr) {
         add_mode = true;
     } else if (add_mode && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
         add_mode = false;
-        float x = (pos.x - io.DisplaySize.x / 2) / state.scale + state.offset_x;
-        float y = (io.DisplaySize.y / 2 - pos.y) / state.scale + state.offset_y;
+        float x = (pos.x - io.DisplaySize.x / 2) * Interface::GetDPIScaling() / state.scale + state.offset_x;
+        float y = (io.DisplaySize.y - pos.y) * Interface::GetDPIScaling() / state.scale + state.offset_y;
         Emplacement::AddEmplacement(cr, x, y, true, Player::FRIENDLY);
     }
 
@@ -218,13 +218,13 @@ void World::Process(cairo_t *cr) {
     }
 
     // Off-screen?
-    if (state.offset_x < -left_edge) {
-        state.offset_x = -left_edge;
+    if (state.offset_x < left_edge) {
+        state.offset_x = left_edge;
         r_velocity = 0;
         l_velocity = 0;
     }
-    if (state.offset_x > -right_edge) {
-        state.offset_x = -right_edge;
+    if (state.offset_x > right_edge) {
+        state.offset_x = right_edge;
         r_velocity = 0;
         l_velocity = 0;
     }
@@ -247,5 +247,10 @@ void updateFPS() {
     }
 
     // Display FPS in ImGui
-    ImGui::Text("FPS: %.2f", fps);
+    ImGui::TextUnformatted("FPS: ");
+    ImGui::PushFont(font_bold);
+    ImGui::SameLine();
+    ImGui::SetCursorScreenPos(ImVec2(150.0f, ImGui::GetCursorScreenPos().y));
+    ImGui::Text("%.2f", fps);
+    ImGui::PopFont();
 }

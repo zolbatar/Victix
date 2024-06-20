@@ -21,7 +21,7 @@ private:
     WorldPosition state;
     ImVec2 last_drag;
     DragType dragging = DragType::NONE;
-    float ff, left_edge, right_edge;
+    float left_edge, right_edge;
 
     // Smooth scroll animation
     double l_velocity = 0.0;

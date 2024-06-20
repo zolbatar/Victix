@@ -18,7 +18,6 @@ private:
 public:
     static const int TERRAIN_HEIGHT = 64;
     static const int TERRAIN_WIDTH = 2048;
-    constexpr static const double MIN_HEIGHT = 0.75;
     constexpr static const double F_TERRAIN_HEIGHT = (double) TERRAIN_HEIGHT;
     constexpr static const double F_TERRAIN_WIDTH = (double) TERRAIN_WIDTH;
 

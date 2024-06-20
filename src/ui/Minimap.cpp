@@ -21,7 +21,9 @@ void RenderMinimap(cairo_t *cr, WorldPosition &state) {
     bottom_right.x = io.DisplaySize.x * Interface::GetDPIScaling() - 32;
     top_left.y = 42;
     bottom_right.y = 42 + height;
-    cairo_translate(cr, io.DisplaySize.x * Interface::GetDPIScaling() - 32 - width / 2, 24 + height);
+    cairo_translate(cr,
+                    io.DisplaySize.x * Interface::GetDPIScaling() - 32 - width / 2,
+                    24 + height);
     cairo_scale(cr, 1.0 / divider, -1.0 / divider);
     cairo_rectangle(cr,
                     -Terrain::F_TERRAIN_WIDTH / 2, -Terrain::F_TERRAIN_HEIGHT * 1,
@@ -54,16 +56,21 @@ void RenderMinimap(cairo_t *cr, WorldPosition &state) {
     }
 
     // Outline
-    float x1 = io.DisplaySize.x / 2 / state.scale - state.offset_x;
-    float x2 = io.DisplaySize.x / 2;
+    float x1 = io.DisplaySize.x * Interface::GetDPIScaling() / 2 / state.scale - state.offset_x;
+    float x2 = io.DisplaySize.x * Interface::GetDPIScaling() / state.scale;
     cairo_move_to(cr, -x1, -Terrain::F_TERRAIN_HEIGHT);
     cairo_line_to(cr, -x1 + x2, -Terrain::F_TERRAIN_HEIGHT);
     cairo_move_to(cr, -x1, Terrain::F_TERRAIN_HEIGHT * 3);
     cairo_line_to(cr, -x1 + x2, Terrain::F_TERRAIN_HEIGHT * 3);
-    cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
-    cairo_set_line_width(cr, divider * 2);
+    cairo_set_source_rgb(cr, 0.5, 1.0, 1.0);
+    cairo_set_line_width(cr, 2.0 * state.scale * divider);
     cairo_stroke(cr);
     cairo_restore(cr);
+
+    top_left.x /= Interface::GetDPIScaling();
+    top_left.y /= Interface::GetDPIScaling();
+    bottom_right.x /= Interface::GetDPIScaling();
+    bottom_right.y /= Interface::GetDPIScaling();
 }
 
 bool IsPointInRect(ImVec2 point, ImVec2 rectMin, ImVec2 rectMax) {
