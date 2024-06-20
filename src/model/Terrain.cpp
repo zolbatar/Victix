@@ -67,7 +67,7 @@ void Terrain::Render(cairo_t *cr, WorldPosition &state) {
     }
 
     // Do it
-    for (unsigned int i = 0; i < F_TERRAIN_WIDTH; i++) {
+    for (unsigned int i = 0; i < TERRAIN_WIDTH; i++) {
         if (i == 0)
             cairo_move_to(cr, i - F_TERRAIN_WIDTH / 2, heights[i]);
         else

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 #include <string>
 #include "Interface.h"
 #include "imgui.h"
@@ -102,12 +103,11 @@ GLuint Interface::CreateFBO(GLuint texture) {
         printf("OpenGL error creating framebuffer\n");
         exit(1);
     }
-    //glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     return fbo;
 }
 
 const char *blur_vertex_shader_src = R"(
-    #version 330 core
     layout (location = 0) in vec2 inPos;
     layout (location = 1) in vec2 inTexCoord;
 
@@ -120,7 +120,6 @@ const char *blur_vertex_shader_src = R"(
 )";
 
 const char *blur_fragment_shader_src = R"(
-    #version 330 core
     out vec4 FragColor;
 
     in vec2 TexCoord;
@@ -130,7 +129,8 @@ const char *blur_fragment_shader_src = R"(
     uniform float weight[5];
 
     void main() {
-        vec2 tex_offset = 1.0 / textureSize(image, 0); // gets size of single texel
+        FragColor=vec4(1.0, 1.0, 1.0, 1.0);
+/*        vec2 tex_offset = 1.0 / textureSize(image, 0); // gets size of single texel
         vec3 result = texture(image, TexCoord).rgb * weight[0]; // current fragment's contribution
 
         if (horizontal) {
@@ -145,20 +145,20 @@ const char *blur_fragment_shader_src = R"(
             }
         }
 
-        FragColor = vec4(result, 1.0);
+        FragColor = vec4(result, 1.0);*/
     }
 )";
 
 const char *final_fragment_shader_source = R"(
-        #version 330 core
         out vec4 FragColor;
         in vec2 TexCoord;
         uniform sampler2D horizontalBlurredImage;
         uniform sampler2D verticalBlurredImage;
         void main() {
             //vec3 color = texture(horizontalBlurredImage, TexCoord).rgb + texture(verticalBlurredImage, TexCoord).rgb;
-            vec3 color = texture(horizontalBlurredImage, TexCoord).rgb;
-            FragColor = vec4(color, 1.0);
+            //vec3 color = texture(horizontalBlurredImage, TexCoord).rgb;
+            //FragColor = vec4(color, 1.0);
+            FragColor=vec4(1.0, 1.0, 1.0, 1.0);
         }
     )";
 
@@ -206,16 +206,17 @@ void Interface::ShutdownBlur() {
 }
 
 GLuint Interface::DoBlur(GLuint cairo_texture) {
-    static float weight[5] = {0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216};
+    static GLfloat weight[5] = {0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216};
 
     // First pass: horizontal blur
-/*    glBindFramebuffer(GL_FRAMEBUFFER, fbo_h);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT);
     glUseProgram(blur_shader_program);
     glUniform1i(glGetUniformLocation(blur_shader_program, "horizontal"), 1);
     glUniform1fv(glGetUniformLocation(blur_shader_program, "weight"), 5, weight);
     glBindTexture(GL_TEXTURE_2D, cairo_texture);
     RenderQuad();
+    return blur_texture_h;
 
     // Second pass: vertical blur
     glBindFramebuffer(GL_FRAMEBUFFER, fbo_v);
@@ -224,12 +225,10 @@ GLuint Interface::DoBlur(GLuint cairo_texture) {
     glUniform1i(glGetUniformLocation(blur_shader_program, "horizontal"), 0);
     glUniform1fv(glGetUniformLocation(blur_shader_program, "weight"), 5, weight);
     glBindTexture(GL_TEXTURE_2D, cairo_texture);
-    RenderQuad();*/
+    RenderQuad();
 
     // Final render: combine original and blurred textures
-//    glBindFramebuffer(GL_FRAMEBUFFER, fbo_final);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    //glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Example: Black clear color
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo_final);
     glClear(GL_COLOR_BUFFER_BIT);
     glUseProgram(final_shader_program);
     glActiveTexture(GL_TEXTURE0);
@@ -269,8 +268,14 @@ GLuint Interface::CreateShaderProgram(const char *vertexShaderSource, const char
 }
 
 GLuint Interface::CompileShader(const char *shaderSource, GLenum shaderType) {
-    GLuint shader = glCreateShader(shaderType);
+/*    GLuint shader = glCreateShader(shaderType);
     glShaderSource(shader, 1, &shaderSource, nullptr);
+    glCompileShader(shader);*/
+
+
+    const GLchar *fragment_shader_with_version[2] = {"#version 150\n", shaderSource};
+    GLuint shader = glCreateShader(shaderType);
+    glShaderSource(shader, 2, fragment_shader_with_version, nullptr);
     glCompileShader(shader);
 
     // Check for compile errors
@@ -287,7 +292,7 @@ GLuint Interface::CompileShader(const char *shaderSource, GLenum shaderType) {
 }
 
 void Interface::RenderQuad() {
-// Vertex data for a fullscreen quad
+    // Vertex data for a fullscreen quad
     float vertices[] = {
             // Positions        // Texture coords
             -1.0f, 1.0f, 0.0f, 1.0f,

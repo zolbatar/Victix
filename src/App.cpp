@@ -11,6 +11,8 @@
 std::unique_ptr<World> game_world = nullptr;
 ImFont *font_regular;
 ImFont *font_bold;
+extern int window_width;
+extern int window_height;
 
 App::App(GLFWwindow *window) : window(window) {
     ImGuiIO &io = ImGui::GetIO();
@@ -42,8 +44,8 @@ App::App(GLFWwindow *window) : window(window) {
     ImGui::StyleColorsLight();
 
     // Cairo render surface
-    width = mode->width * Interface::GetDPIScaling();
-    height = mode->height * Interface::GetDPIScaling();
+    width = window_width * Interface::GetDPIScaling();
+    height = window_height * Interface::GetDPIScaling();
     surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
     cr = cairo_create(surface);
     render = Interface::CreateTexture(width, height, GL_LINEAR, nullptr);
