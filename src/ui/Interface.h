@@ -16,6 +16,7 @@ private:
     static GLuint fbo_h, fbo_v, fbo_final;
     static GLuint blur_shader_program;
     static GLuint final_shader_program;
+    static GLuint vao, vbo;
 
 public:
     static int LastTexWidth() { return width; }
@@ -46,7 +47,7 @@ public:
 
     static void ShutdownBlur();
 
-    static GLuint DoBlur(GLuint cairo_texture);
+    static GLuint DoBlur(GLuint cairo_texture, int _width, int _height);
 
     static GLuint CreateShaderProgram(const char *vertexShaderSource, const char *fragmentShaderSource);
 

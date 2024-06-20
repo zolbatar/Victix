@@ -39,15 +39,12 @@ private:
 public:
     bool add_mode = false;
     int idx, idx1, idx2;
-    GLuint out;
 
     World();
 
     void Build(cairo_t *cr);
 
     void PreRender(cairo_t *cr, cairo_surface_t *surface, GLuint render, float width, float height);
-
-    void Render(GLuint render, float width, float height);
 
     void Process(cairo_t *cr);
 

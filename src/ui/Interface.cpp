@@ -8,6 +8,7 @@
 
 #include <stb_image.h>
 
+extern char *glsl_version_init;
 float Interface::dpi = 72.0f;
 float Interface::dpi_scaling = 1.0;
 int Interface::width;
@@ -108,9 +109,8 @@ GLuint Interface::CreateFBO(GLuint texture) {
 }
 
 const char *blur_vertex_shader_src = R"(
-    layout (location = 0) in vec2 inPos;
-    layout (location = 1) in vec2 inTexCoord;
-
+    in vec2 inPos;
+    in vec2 inTexCoord;
     out vec2 TexCoord;
 
     void main() {
@@ -120,13 +120,11 @@ const char *blur_vertex_shader_src = R"(
 )";
 
 const char *blur_fragment_shader_src = R"(
-    out vec4 FragColor;
-
     in vec2 TexCoord;
-
     uniform sampler2D image;
     uniform bool horizontal;
     uniform float weight[5];
+    out vec4 FragColor;
 
     void main() {
         FragColor=vec4(1.0, 1.0, 1.0, 1.0);
@@ -150,10 +148,10 @@ const char *blur_fragment_shader_src = R"(
 )";
 
 const char *final_fragment_shader_source = R"(
-        out vec4 FragColor;
         in vec2 TexCoord;
         uniform sampler2D horizontalBlurredImage;
         uniform sampler2D verticalBlurredImage;
+        out vec4 FragColor;
         void main() {
             //vec3 color = texture(horizontalBlurredImage, TexCoord).rgb + texture(verticalBlurredImage, TexCoord).rgb;
             //vec3 color = texture(horizontalBlurredImage, TexCoord).rgb;
@@ -205,7 +203,7 @@ void Interface::ShutdownBlur() {
     glDeleteFramebuffers(1, &fbo_final);
 }
 
-GLuint Interface::DoBlur(GLuint cairo_texture) {
+GLuint Interface::DoBlur(GLuint cairo_texture, int _width, int _height) {
     static GLfloat weight[5] = {0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216};
 
     // First pass: horizontal blur
@@ -273,7 +271,7 @@ GLuint Interface::CompileShader(const char *shaderSource, GLenum shaderType) {
     glCompileShader(shader);*/
 
 
-    const GLchar *fragment_shader_with_version[2] = {"#version 150\n", shaderSource};
+    const GLchar *fragment_shader_with_version[2] = {glsl_version_init, shaderSource};
     GLuint shader = glCreateShader(shaderType);
     glShaderSource(shader, 2, fragment_shader_with_version, nullptr);
     glCompileShader(shader);

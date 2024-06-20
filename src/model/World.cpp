@@ -93,17 +93,14 @@ void World::PreRender(cairo_t *cr, cairo_surface_t *surface, GLuint render, floa
                  cairo_image_surface_get_data(surface));
 
     // Blur
-    out = Interface::DoBlur(render);
-}
-
-void World::Render(GLuint render, float width, float height) {
-/*    ImGui::GetWindowDrawList()->AddImage(
+    auto out = Interface::DoBlur(render, width, height);
+    ImGui::GetWindowDrawList()->AddImage(
             reinterpret_cast<ImTextureID>(out),
             ImVec2(0.0f, 0.0f),
             ImVec2(width, height),
             ImVec2(0.0f, 0.0f),
             ImVec2(1.0f, 1.0f),
-            IM_COL32(255, 255, 255, 255));*/
+            IM_COL32(255, 255, 255, 255));
 
     ImGui::BeginChild("Position", ImVec2(640, 360), false,
                       ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration);

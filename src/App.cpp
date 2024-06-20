@@ -86,14 +86,10 @@ void App::Go() {
             game_world->Build(cr);
         }
 
-        // Create terrain
-        game_world->PreRender(cr, surface, render, width, height);
-
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         // Update things, process input etc.
         if (game_world != nullptr)
@@ -119,7 +115,7 @@ void App::Go() {
                 IM_COL32(255, 255, 255, 255));
 
         // Render world
-        game_world->Render(render, width, height);
+        game_world->PreRender(cr, surface, render, width, height);
 
         ImGui::End();
         ImGui::PopStyleVar(2);

@@ -75,7 +75,7 @@ int main() {
 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window, true);
-    glsl_version_init = glsl_version;
+    glsl_version_init = (char *)glsl_version;
     ImGui_ImplOpenGL3_Init(glsl_version);
     glfwSetScrollCallback(window, glfw_scroll_callback);
 
