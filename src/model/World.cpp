@@ -45,7 +45,7 @@ void World::Build(cairo_t *cr) {
     Emplacement::AddEmplacement(cr, x, (float) heights[idx] + 5, true, Player::FRIENDLY);
 }
 
-void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float width, float height) {
+void World::PreRender(cairo_t *cr, cairo_surface_t *surface, GLuint render, float width, float height) {
     ImGuiIO &io = ImGui::GetIO();
     cairoDebugDraw.SetCR(cr);
     switch (state.zoom) {
@@ -93,8 +93,10 @@ void World::Render(cairo_t *cr, cairo_surface_t *surface, GLuint render, float w
                  cairo_image_surface_get_data(surface));
 
     // Blur
-    GLuint out = Interface::DoBlur(render);
+    out = Interface::DoBlur(render);
+}
 
+void World::Render(GLuint render, float width, float height) {
     ImGui::GetWindowDrawList()->AddImage(
             reinterpret_cast<ImTextureID>(out),
             ImVec2(0.0f, 0.0f),

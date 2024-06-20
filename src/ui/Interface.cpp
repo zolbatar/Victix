@@ -1,8 +1,7 @@
 #include <iostream>
 #include <string>
 #include "Interface.h"
-#include "backends/imgui_impl_opengl3.h"
-#include "backends/imgui_impl_glfw.h"
+#include "imgui.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 
@@ -103,7 +102,7 @@ GLuint Interface::CreateFBO(GLuint texture) {
         printf("OpenGL error creating framebuffer\n");
         exit(1);
     }
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    //glBindFramebuffer(GL_FRAMEBUFFER, 0);
     return fbo;
 }
 
@@ -157,7 +156,8 @@ const char *final_fragment_shader_source = R"(
         uniform sampler2D horizontalBlurredImage;
         uniform sampler2D verticalBlurredImage;
         void main() {
-            vec3 color = texture(horizontalBlurredImage, TexCoord).rgb + texture(verticalBlurredImage, TexCoord).rgb;
+            //vec3 color = texture(horizontalBlurredImage, TexCoord).rgb + texture(verticalBlurredImage, TexCoord).rgb;
+            vec3 color = texture(horizontalBlurredImage, TexCoord).rgb;
             FragColor = vec4(color, 1.0);
         }
     )";
@@ -167,20 +167,22 @@ void Interface::SetupBlur(int _width, int _height) {
     glGenTextures(1, &blur_texture_v);
     glGenTextures(1, &final_texture);
 
+    GLint format = GL_RGB;
+
     // Set up blur textures
     glBindTexture(GL_TEXTURE_2D, blur_texture_h);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, format, _width, _height, 0, format, GL_UNSIGNED_BYTE, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     glBindTexture(GL_TEXTURE_2D, blur_texture_v);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, format, _width, _height, 0, format, GL_UNSIGNED_BYTE, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     // Setup final texture
     glBindTexture(GL_TEXTURE_2D, final_texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, _width, _height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, format, _width, _height, 0, format, GL_UNSIGNED_BYTE, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -207,7 +209,7 @@ GLuint Interface::DoBlur(GLuint cairo_texture) {
     static float weight[5] = {0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216};
 
     // First pass: horizontal blur
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo_h);
+/*    glBindFramebuffer(GL_FRAMEBUFFER, fbo_h);
     glClear(GL_COLOR_BUFFER_BIT);
     glUseProgram(blur_shader_program);
     glUniform1i(glGetUniformLocation(blur_shader_program, "horizontal"), 1);
@@ -221,20 +223,21 @@ GLuint Interface::DoBlur(GLuint cairo_texture) {
     glUseProgram(blur_shader_program);
     glUniform1i(glGetUniformLocation(blur_shader_program, "horizontal"), 0);
     glUniform1fv(glGetUniformLocation(blur_shader_program, "weight"), 5, weight);
-    glBindTexture(GL_TEXTURE_2D, blur_texture_h);
-    RenderQuad();
+    glBindTexture(GL_TEXTURE_2D, cairo_texture);
+    RenderQuad();*/
 
     // Final render: combine original and blurred textures
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo_final);
+//    glBindFramebuffer(GL_FRAMEBUFFER, fbo_final);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    //glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Example: Black clear color
     glClear(GL_COLOR_BUFFER_BIT);
     glUseProgram(final_shader_program);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, cairo_texture);
+    glBindTexture(GL_TEXTURE_2D, blur_texture_h);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, blur_texture_v);
     RenderQuad();
 
-//    return blur_texture_v;
     return final_texture;
 }
 
@@ -254,7 +257,8 @@ GLuint Interface::CreateShaderProgram(const char *vertexShaderSource, const char
     if (!success) {
         GLchar infoLog[512];
         glGetProgramInfoLog(shaderProgram, 512, nullptr, infoLog);
-        std::cerr << "ERROR::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+        std::cout << "ERROR::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+        exit(1);
     }
 
     // Clean up shaders as they are now linked into the program
@@ -275,38 +279,39 @@ GLuint Interface::CompileShader(const char *shaderSource, GLenum shaderType) {
     if (!success) {
         GLchar infoLog[512];
         glGetShaderInfoLog(shader, 512, nullptr, infoLog);
-        std::cerr << "ERROR::SHADER::COMPILATION_FAILED\n" << infoLog << std::endl;
+        std::cout << "ERROR::SHADER::COMPILATION_FAILED\n" << infoLog << std::endl;
+        exit(1);
     }
 
     return shader;
 }
 
 void Interface::RenderQuad() {
-
-    // Render a fullscreen quad
-    static const GLfloat quadVertices[] = {
+// Vertex data for a fullscreen quad
+    float vertices[] = {
+            // Positions        // Texture coords
             -1.0f, 1.0f, 0.0f, 1.0f,
             -1.0f, -1.0f, 0.0f, 0.0f,
             1.0f, -1.0f, 1.0f, 0.0f,
-            1.0f, 1.0f, 1.0f, 1.0f,
+
+            -1.0f, 1.0f, 0.0f, 1.0f,
+            1.0f, -1.0f, 1.0f, 0.0f,
+            1.0f, 1.0f, 1.0f, 1.0f
     };
 
-    GLuint quadVBO, quadVAO;
+    GLuint quadVAO, quadVBO;
     glGenVertexArrays(1, &quadVAO);
     glGenBuffers(1, &quadVBO);
     glBindVertexArray(quadVAO);
     glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void *) 0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *) 0);
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void *) (2 * sizeof(GLfloat)));
-    glBindVertexArray(0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *) (2 * sizeof(float)));
 
-    glBindVertexArray(quadVAO);
-    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-    glBindVertexArray(0);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
 
-    glDeleteBuffers(1, &quadVBO);
     glDeleteVertexArrays(1, &quadVAO);
+    glDeleteBuffers(1, &quadVBO);
 }

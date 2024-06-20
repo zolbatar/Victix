@@ -1,4 +1,5 @@
 #include <chrono>
+#include <OpenGL/gl.h>
 #include "App.h"
 #include "imgui.h"
 #include "backends/imgui_impl_opengl3.h"
@@ -77,10 +78,20 @@ void App::Go() {
         // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
         glfwPollEvents();
 
+        // Build?
+        if (game_world == nullptr) {
+            game_world = std::make_unique<World>();
+            game_world->Build(cr);
+        }
+
+        // Create terrain
+        game_world->PreRender(cr, surface, render, width, height);
+
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         // Update things, process input etc.
         if (game_world != nullptr)
@@ -105,14 +116,8 @@ void App::Go() {
                 ImVec2(1.0f, 1.0f),
                 IM_COL32(255, 255, 255, 255));
 
-        // Build?
-        if (game_world == nullptr) {
-            game_world = std::make_unique<World>();
-            game_world->Build(cr);
-        }
-
         // Render world
-        game_world->Render(cr, surface, render, width, height);
+        game_world->Render(render, width, height);
 
         ImGui::End();
         ImGui::PopStyleVar(2);
