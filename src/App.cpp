@@ -99,10 +99,10 @@ void App::Go() {
 
         // Do SKIA!!
         skia->MakeFrame(game_world->GetState());
-        skia->EndFrame();
 
         // Render world
         game_world->PreRender(cr, surface, render, width, height);
+        skia->EndFrame();
 
         ImGui::End();
         ImGui::PopStyleVar(2);

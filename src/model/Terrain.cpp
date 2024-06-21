@@ -62,14 +62,13 @@ Terrain::Terrain() {
 }
 
 void Terrain::RenderSkia(WorldPosition &state) {
-    return;
     ImGuiIO &io = ImGui::GetIO();
     auto canvas = Skia::GetCanvas();
 
     // Translate, scale
     canvas->save();
-    canvas->translate(io.DisplaySize.x - (state.offset_x),
-                      io.DisplaySize.y + (Terrain::F_TERRAIN_HEIGHT));
+    canvas->translate(io.DisplaySize.x - (state.offset_x * state.scale),
+                       Terrain::F_TERRAIN_HEIGHT * state.scale);
     canvas->scale(state.scale, state.scale);
 
     // Build points
@@ -78,13 +77,14 @@ void Terrain::RenderSkia(WorldPosition &state) {
         _points[i] = SkPoint::Make(i - F_TERRAIN_WIDTH / 2, heights[i]);
     }
 
+    // Draw path
     SkPath path;
     path.moveTo(_points[0].x(), _points[0].y());
     for (int i = 1; i < sizeof(_points) / sizeof(_points[0]); ++i) {
         path.lineTo(_points[i].x(), _points[i].y());
     }
-    path.lineTo((F_TERRAIN_WIDTH / 2), F_TERRAIN_HEIGHT);
-    path.lineTo(-(F_TERRAIN_WIDTH / 2), F_TERRAIN_HEIGHT);
+    path.lineTo((F_TERRAIN_WIDTH / 2), -F_TERRAIN_HEIGHT);
+    path.lineTo(-(F_TERRAIN_WIDTH / 2), -F_TERRAIN_HEIGHT);
     path.close();
 
     // Fill
