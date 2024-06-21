@@ -2,13 +2,18 @@ cmake_minimum_required(VERSION 3.28)
 project(Victix)
 
 set(CMAKE_CXX_STANDARD 17)
+add_compile_definitions(GL_SILENCE_DEPRECATION)
 
-find_package(opengl_system)
-find_package(glfw3)
+message(STATUS "Vcpkg path: ${VCPKG_INSTALLED_DIR}")
+message(STATUS "Triplet: ${VCPKG_TARGET_TRIPLET}")
+
+find_package(OpenGL REQUIRED)
+find_package(glfw3 CONFIG REQUIRED)
 find_package(freetype)
-find_package(box2d)
-find_package(cairo)
-find_package(stb)
+find_package(box2d CONFIG REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(cairo REQUIRED IMPORTED_TARGET cairo)
+find_package(Stb REQUIRED)
 
 add_executable(${PROJECT_NAME}
         src/main.cpp
@@ -45,12 +50,12 @@ add_executable(${PROJECT_NAME}
         src/ui/Shaders.h)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
+        ${Stb_INCLUDE_DIR}
         ${CMAKE_SOURCE_DIR}/src/imgui)
 
 target_link_libraries(${PROJECT_NAME}
-        opengl::opengl
+        OpenGL::GL
         box2d::box2d
-        cairo::cairo
+        PkgConfig::cairo
         Freetype::Freetype
-        stb::stb
         glfw)

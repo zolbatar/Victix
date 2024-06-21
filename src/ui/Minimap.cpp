@@ -48,11 +48,19 @@ void RenderMinimap(cairo_t *cr, WorldPosition &state) {
 
     // And objects
     for (auto &obj: game_world->GetObjects()) {
-        float sz = obj->GetMinimapSize();
         b2Vec2 _pos = obj->GetBody()->GetPosition();
         cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
-        cairo_rectangle(cr, _pos.x, _pos.y, sz, sz);
+        float sz = obj->GetMinimapSize() * state.scale;
+        cairo_rectangle(cr, _pos.x - sz / 2, _pos.y - sz / 2, sz, sz);
         cairo_fill(cr);
+        sz = 0.1f;// * state.scale;
+        switch (obj->Type()) {
+            case Type::EMPLACEMENT:
+                cairo_set_source_rgb(cr, 0.0, 0.0, 1.0);
+                break;
+        }
+        cairo_rectangle(cr, _pos.x - sz / 2, _pos.y - sz / 2, sz, sz);
+        cairo_stroke(cr);
     }
 
     // Outline

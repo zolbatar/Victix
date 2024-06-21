@@ -39,10 +39,10 @@ void Emplacement::AddEmplacement(cairo_t *cr, float x, float y, bool final, Play
     float height = y - heights[game_world->idx];
 
     // Make sure height is valid
-    if (height > 50)
-        y = heights[game_world->idx] + 50;
-    else if (height < -10)
-        y = heights[game_world->idx] - 10;
+    if (height > Terrain::TERRAIN_HEIGHT)
+        y = heights[game_world->idx] + Terrain::TERRAIN_HEIGHT;
+    else if (height < -Terrain::TERRAIN_HEIGHT / 4)
+        y = heights[game_world->idx] - Terrain::TERRAIN_HEIGHT / 4;
 
     // Range
     game_world->idx1 = round(game_world->idx - size / 2) - 4;
