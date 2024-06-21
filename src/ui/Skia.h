@@ -42,5 +42,7 @@ public:
 
     void MakeFrame(WorldPosition &state);
 
+    void EndFrame();
+
     static SkCanvas *GetCanvas() { return surface->getCanvas(); }
 };

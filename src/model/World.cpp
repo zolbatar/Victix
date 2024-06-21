@@ -64,6 +64,7 @@ void World::PreRender(cairo_t *cr, cairo_surface_t *surface, GLuint render, floa
                     io.DisplaySize.y + (2 * Terrain::F_TERRAIN_HEIGHT * state.scale));
     cairo_scale(cr, state.scale, -state.scale);
     terrain->Render(cr, state);
+//    terrain->RenderSkia(state);
 
     // Objects
     for (auto &obj: objects) {

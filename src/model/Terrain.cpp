@@ -61,6 +61,60 @@ Terrain::Terrain() {
     GenerateTerrain(noise);
 }
 
+void Terrain::RenderSkia(WorldPosition &state) {
+    return;
+    ImGuiIO &io = ImGui::GetIO();
+    auto canvas = Skia::GetCanvas();
+
+    // Translate, scale
+    canvas->save();
+    canvas->translate(io.DisplaySize.x - (state.offset_x),
+                      io.DisplaySize.y + (Terrain::F_TERRAIN_HEIGHT));
+    canvas->scale(state.scale, state.scale);
+
+    // Build points
+    SkPoint _points[Terrain::TERRAIN_WIDTH];
+    for (unsigned int i = 0; i < Terrain::TERRAIN_WIDTH; i++) {
+        _points[i] = SkPoint::Make(i - F_TERRAIN_WIDTH / 2, heights[i]);
+    }
+
+    SkPath path;
+    path.moveTo(_points[0].x(), _points[0].y());
+    for (int i = 1; i < sizeof(_points) / sizeof(_points[0]); ++i) {
+        path.lineTo(_points[i].x(), _points[i].y());
+    }
+    path.lineTo((F_TERRAIN_WIDTH / 2), F_TERRAIN_HEIGHT);
+    path.lineTo(-(F_TERRAIN_WIDTH / 2), F_TERRAIN_HEIGHT);
+    path.close();
+
+    // Fill
+    SkPaint paint;
+    paint.setColor(SkColorSetARGB(255, 25, 25, 112));
+    paint.setStrokeWidth(1.0f);
+    paint.setAntiAlias(true);
+    paint.setStyle(SkPaint::kFill_Style);
+    canvas->drawPath(path, paint);
+
+    // Outline blue
+    paint.reset();
+    paint.setColor(SkColorSetARGB(255, 255, 255, 255)); // Outline color
+    paint.setStyle(SkPaint::kStroke_Style); // Use stroke style
+    paint.setAntiAlias(true);
+    paint.setMaskFilter(SkMaskFilter::MakeBlur(SkBlurStyle::kNormal_SkBlurStyle, 6.0f));
+    paint.setStrokeWidth(2.0f); // Set the stroke width
+    canvas->drawPath(path, paint);
+
+    // Outline
+    paint.reset();
+    paint.setColor(SkColorSetARGB(128, 255, 255, 255)); // Outline color
+    paint.setStyle(SkPaint::kStroke_Style); // Use stroke style
+    paint.setAntiAlias(true);
+    paint.setStrokeWidth(2.0f); // Set the stroke width
+    canvas->drawPath(path, paint);
+
+    canvas->restore();
+}
+
 void Terrain::Render(cairo_t *cr, WorldPosition &state) {
     if (game_world->add_mode) {
         ImGuiIO &io = ImGui::GetIO();
@@ -70,9 +124,8 @@ void Terrain::Render(cairo_t *cr, WorldPosition &state) {
         Emplacement::AddEmplacement(cr, x, y, false, Player::FRIENDLY);
     }
 
-
     // Do it
-/*    for (unsigned int i = 0; i < TERRAIN_WIDTH; i++) {
+    for (unsigned int i = 0; i < TERRAIN_WIDTH; i++) {
         if (i == 0)
             cairo_move_to(cr, i - F_TERRAIN_WIDTH / 2, heights[i]);
         else
@@ -95,7 +148,5 @@ void Terrain::Render(cairo_t *cr, WorldPosition &state) {
 
     if (game_world->add_mode) {
         Emplacement::Restore();
-    }*/
-
-
+    }
 }

@@ -99,29 +99,6 @@ void Skia::MakeFrame(WorldPosition &state) {
     paint.setMaskFilter(SkMaskFilter::MakeBlur(SkBlurStyle::kNormal_SkBlurStyle, 0.05f));
     canvas->drawLine(0, 0, width, 1, paint);
 
-    SkPoint _points[Terrain::TERRAIN_WIDTH];
-    auto &heights = terrain->GetHeights();
-    for (unsigned int i = 0; i < Terrain::TERRAIN_WIDTH; i++) {
-        _points[i] = SkPoint::Make(i, heights[i] * state.scale);
-    }
-
-    SkPath path;
-    path.moveTo(_points[0].x(), _points[0].y());
-    for (int i = 1; i < sizeof(_points) / sizeof(_points[0]); ++i) {
-        path.lineTo(_points[i].x(), _points[i].y());
-    }
-    path.lineTo(Terrain::F_TERRAIN_WIDTH, -Terrain::F_TERRAIN_HEIGHT);
-    path.lineTo(-Terrain::F_TERRAIN_WIDTH, -Terrain::F_TERRAIN_HEIGHT);
-    path.close();
-
-    paint.reset();
-    paint.setColor(SK_ColorBLUE);
-    paint.setStrokeWidth(1.0f);
-    paint.setAntiAlias(true);
-    paint.setStyle(SkPaint::kFill_Style);
-
-    canvas->drawPath(path, paint);
-
 /*    SkPath path;
     auto &heights = terrain->GetHeights();
     for (unsigned int i = 0; i < 100; i++) {
@@ -138,6 +115,9 @@ void Skia::MakeFrame(WorldPosition &state) {
                                   rand() % 0xFF));
     paint.setStyle(SkPaint::kFill_Style);
     canvas->drawPath(path, paint);*/
+}
+
+void Skia::EndFrame() {
 
     // Flush Skia commands
     context->flushAndSubmit();

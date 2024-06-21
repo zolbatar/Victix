@@ -27,6 +27,8 @@ public:
 
     void Render(cairo_t *cr, WorldPosition &state);
 
+    void RenderSkia(WorldPosition &state);
+
     void GenerateTerrain(PerlinNoise &perlin);
 
     void UpdateBox2D();
