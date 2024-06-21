@@ -59,6 +59,7 @@ int main() {
 #endif
 
     // Create window with graphics context
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     window = glfwCreateWindow(window_width, window_height, "Victix", nullptr, nullptr);
     if (window == nullptr)
         return 1;

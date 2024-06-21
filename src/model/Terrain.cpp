@@ -65,12 +65,6 @@ void Terrain::RenderSkia(WorldPosition &state) {
     ImGuiIO &io = ImGui::GetIO();
     auto canvas = Skia::GetCanvas();
 
-    // Translate, scale
-    canvas->save();
-    canvas->translate(io.DisplaySize.x - (state.offset_x * state.scale),
-                      Terrain::F_TERRAIN_HEIGHT * state.scale);
-    canvas->scale(state.scale, state.scale);
-
     // Build points
     SkPoint _points[Terrain::TERRAIN_WIDTH];
     for (unsigned int i = 0; i < Terrain::TERRAIN_WIDTH; i++) {
@@ -112,8 +106,6 @@ void Terrain::RenderSkia(WorldPosition &state) {
     paint.setAntiAlias(true);
     paint.setStrokeWidth(2.0f / state.scale); // Set the stroke width
     canvas->drawPath(outer, paint);
-
-    canvas->restore();
 }
 
 void Terrain::Render(cairo_t *cr, WorldPosition &state) {

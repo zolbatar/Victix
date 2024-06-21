@@ -5,6 +5,7 @@
 #include "../objects/Emplacement.h"
 #include "../ui/Minimap.h"
 #include "../ui/Interface.h"
+#include "../ui/Skia.h"
 
 std::unique_ptr<b2World> world;
 std::unique_ptr<Terrain> terrain;
@@ -58,13 +59,14 @@ void World::PreRender(cairo_t *cr, cairo_surface_t *surface, GLuint render, floa
     cairo_paint(cr);
 
     // Terrain
-    cairo_save(cr);
-    cairo_translate(cr,
-                    io.DisplaySize.x - (state.offset_x * state.scale),
-                    io.DisplaySize.y + (2 * Terrain::F_TERRAIN_HEIGHT * state.scale));
-    cairo_scale(cr, state.scale, -state.scale);
+    auto canvas = Skia::GetCanvas();
+    canvas->save();
+    canvas->translate(io.DisplaySize.x - (state.offset_x * state.scale),
+                      (float)(Terrain::F_TERRAIN_HEIGHT) * state.scale);
+    canvas->scale(state.scale, state.scale);
     terrain->Render(cr, state);
     terrain->RenderSkia(state);
+    canvas->restore();
 
     // Objects
     for (auto &obj: objects) {
