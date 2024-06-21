@@ -68,7 +68,7 @@ void Terrain::RenderSkia(WorldPosition &state) {
     // Translate, scale
     canvas->save();
     canvas->translate(io.DisplaySize.x - (state.offset_x * state.scale),
-                       Terrain::F_TERRAIN_HEIGHT * state.scale);
+                      Terrain::F_TERRAIN_HEIGHT * state.scale);
     canvas->scale(state.scale, state.scale);
 
     // Build points
@@ -83,6 +83,7 @@ void Terrain::RenderSkia(WorldPosition &state) {
     for (int i = 1; i < sizeof(_points) / sizeof(_points[0]); ++i) {
         path.lineTo(_points[i].x(), _points[i].y());
     }
+    SkPath outer(path);
     path.lineTo((F_TERRAIN_WIDTH / 2), -F_TERRAIN_HEIGHT);
     path.lineTo(-(F_TERRAIN_WIDTH / 2), -F_TERRAIN_HEIGHT);
     path.close();
@@ -100,17 +101,17 @@ void Terrain::RenderSkia(WorldPosition &state) {
     paint.setColor(SkColorSetARGB(255, 255, 255, 255)); // Outline color
     paint.setStyle(SkPaint::kStroke_Style); // Use stroke style
     paint.setAntiAlias(true);
-    paint.setMaskFilter(SkMaskFilter::MakeBlur(SkBlurStyle::kNormal_SkBlurStyle, 6.0f));
-    paint.setStrokeWidth(2.0f); // Set the stroke width
-    canvas->drawPath(path, paint);
+    paint.setMaskFilter(SkMaskFilter::MakeBlur(SkBlurStyle::kNormal_SkBlurStyle, 6.0f / state.scale));
+    paint.setStrokeWidth(2.0f / state.scale); // Set the stroke width
+    canvas->drawPath(outer, paint);
 
     // Outline
     paint.reset();
     paint.setColor(SkColorSetARGB(128, 255, 255, 255)); // Outline color
     paint.setStyle(SkPaint::kStroke_Style); // Use stroke style
     paint.setAntiAlias(true);
-    paint.setStrokeWidth(2.0f); // Set the stroke width
-    canvas->drawPath(path, paint);
+    paint.setStrokeWidth(2.0f / state.scale); // Set the stroke width
+    canvas->drawPath(outer, paint);
 
     canvas->restore();
 }
