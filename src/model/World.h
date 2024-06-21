@@ -50,4 +50,6 @@ public:
     void Process(cairo_t *cr);
 
     std::list<std::unique_ptr<Object>> &GetObjects() { return objects; }
+
+    WorldPosition &GetState() { return state; }
 };

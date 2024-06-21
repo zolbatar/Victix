@@ -1,6 +1,10 @@
 #include <random>
+#include <include/core/SkPoint.h>
+#include <include/core/SkPath.h>
+#include <include/core/SkPaint.h>
 #include "Terrain.h"
 #include "../ui/Interface.h"
+#include "../ui/Skia.h"
 #include "World.h"
 #include "../objects/Emplacement.h"
 
@@ -66,8 +70,9 @@ void Terrain::Render(cairo_t *cr, WorldPosition &state) {
         Emplacement::AddEmplacement(cr, x, y, false, Player::FRIENDLY);
     }
 
+
     // Do it
-    for (unsigned int i = 0; i < TERRAIN_WIDTH; i++) {
+/*    for (unsigned int i = 0; i < TERRAIN_WIDTH; i++) {
         if (i == 0)
             cairo_move_to(cr, i - F_TERRAIN_WIDTH / 2, heights[i]);
         else
@@ -90,5 +95,7 @@ void Terrain::Render(cairo_t *cr, WorldPosition &state) {
 
     if (game_world->add_mode) {
         Emplacement::Restore();
-    }
+    }*/
+
+
 }

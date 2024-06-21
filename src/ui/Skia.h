@@ -20,6 +20,7 @@
 #include "include/gpu/ganesh/gl/GrGLDirectContext.h"
 #include "include/gpu/ganesh/gl/GrGLBackendSurface.h"
 #include "include/gpu/gl/GrGLInterface.h"
+#include "../model/WorldPosition.h"
 
 #include <OpenGL/gl.h>
 #include <GLFW/glfw3.h>
@@ -34,9 +35,12 @@ class Skia {
 private:
     GLuint textureID;
     GrDirectContext *context;
-    SkSurface* surface;
+    static SkSurface *surface;
 
 public:
     Skia();
-    void MakeFrame();
+
+    void MakeFrame(WorldPosition &state);
+
+    static SkCanvas *GetCanvas() { return surface->getCanvas(); }
 };

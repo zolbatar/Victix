@@ -98,7 +98,7 @@ void App::Go() {
                      ImGuiWindowFlags_NoScrollbar);
 
         // Do SKIA!!
-        skia->MakeFrame();
+        skia->MakeFrame(game_world->GetState());
 
         // Render world
         game_world->PreRender(cr, surface, render, width, height);
