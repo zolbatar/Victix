@@ -13,6 +13,7 @@ ImFont *font_regular;
 ImFont *font_bold;
 extern int window_width;
 extern int window_height;
+int width, height;
 
 App::App(GLFWwindow *window) : window(window) {
     ImGuiIO &io = ImGui::GetIO();
@@ -43,9 +44,14 @@ App::App(GLFWwindow *window) : window(window) {
     //ImGui::StyleColorsDark();
     ImGui::StyleColorsLight();
 
-    // Cairo render surface
+    // Render surface size
     width = window_width * Interface::GetDPIScaling();
     height = window_height * Interface::GetDPIScaling();
+
+    // Skia
+    skia = std::make_unique<Skia>();
+
+    // Cairo
     surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
     cr = cairo_create(surface);
     render = Interface::CreateTexture(width, height, GL_LINEAR, nullptr);
@@ -79,6 +85,7 @@ void App::Go() {
         // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application, or clear/overwrite your copy of the keyboard data.
         // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
         glfwPollEvents();
+
 
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
@@ -114,6 +121,7 @@ void App::Go() {
                 ImVec2(width, height),
                 ImVec2(0.0f, 0.0f),
                 ImVec2(Interface::GetDPIScaling(), Interface::GetDPIScaling()));
+        skia->MakeFrame();
 
         // Render world
         game_world->PreRender(cr, surface, render, width, height);

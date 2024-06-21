@@ -14,6 +14,7 @@ find_package(box2d CONFIG REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(cairo REQUIRED IMPORTED_TARGET cairo)
 find_package(Stb REQUIRED)
+find_package(unofficial-skia CONFIG REQUIRED)
 
 add_executable(${PROJECT_NAME}
         src/main.cpp
@@ -47,7 +48,9 @@ add_executable(${PROJECT_NAME}
         src/ui/Minimap.h
         src/objects/Types.h
         src/objects/Player.h
-        src/ui/Shaders.h)
+        src/ui/Shaders.h
+        src/ui/Skia.h
+        src/ui/Skia.cpp)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
         ${Stb_INCLUDE_DIR}
@@ -55,6 +58,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 target_link_libraries(${PROJECT_NAME}
         OpenGL::GL
+        unofficial::skia::skia
         box2d::box2d
         PkgConfig::cairo
         Freetype::Freetype

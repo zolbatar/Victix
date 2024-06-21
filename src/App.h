@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 #include <cairo.h>
 #include "ui/Interface.h"
+#include "ui/Skia.h"
 
 class App {
 private:
@@ -14,8 +15,8 @@ private:
     cairo_t *cr;
     GLuint render;
     GLuint bg;
-    int width, height;
     const float ui_font_size = 24.0f;
+    std::unique_ptr<Skia> skia;
 
 public:
     App(GLFWwindow *window);

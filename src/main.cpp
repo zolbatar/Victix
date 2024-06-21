@@ -7,6 +7,7 @@
 
 int window_width = 1280;
 int window_height = 720;
+GLFWwindow *window;
 
 void glfw_scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 
@@ -58,7 +59,7 @@ int main() {
 #endif
 
     // Create window with graphics context
-    GLFWwindow *window = glfwCreateWindow(window_width, window_height, "Victix", nullptr, nullptr);
+    window = glfwCreateWindow(window_width, window_height, "Victix", nullptr, nullptr);
     if (window == nullptr)
         return 1;
     glfwMakeContextCurrent(window);
@@ -93,7 +94,7 @@ int main() {
     return 0;
 }
 
-void glfw_scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
+void glfw_scroll_callback(GLFWwindow *_window, double xoffset, double yoffset) {
     ImGuiIO &io = ImGui::GetIO();
     io.MouseWheelH += (float) xoffset;
     io.MouseWheel += (float) yoffset;
