@@ -55,23 +55,7 @@ App::App(GLFWwindow *window) : window(window) {
     surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
     cr = cairo_create(surface);
     render = Interface::CreateTexture(width, height, GL_LINEAR, nullptr);
-    bg = Interface::CreateTexture(width, height, GL_LINEAR, nullptr);
     cairo_set_antialias(cr, CAIRO_ANTIALIAS_BEST);
-
-    // Sky
-    cairo_pattern_t *pat = Interface::SetLinear(width / 2, 0, height * 1.8, 90);
-    cairo_pattern_add_color_stop_rgb(pat, 0.0, 55.0 / 255.0, 16.0 / 255.0, 102.0 / 255.0);
-    cairo_pattern_add_color_stop_rgb(pat, 0.5, 255.0 / 255.0, 69.0 / 255.0, 157.0 / 255.0);
-    cairo_pattern_add_color_stop_rgb(pat, 1.0, 255.0 / 255.0, 144.0 / 255.0, 0.0 / 255.0);
-    cairo_rectangle(cr, 0, 0, width, height);
-    cairo_set_source(cr, pat);
-    cairo_fill(cr);
-    cairo_pattern_destroy(pat);
-    cairo_surface_flush(surface);
-    glBindTexture(GL_TEXTURE_2D, bg);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height,
-                 0, GL_BGRA, GL_UNSIGNED_BYTE,
-                 cairo_image_surface_get_data(surface));
 
     // Blur stuff
     Interface::SetupBlur(width, height);
@@ -85,7 +69,6 @@ void App::Go() {
         // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application, or clear/overwrite your copy of the keyboard data.
         // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
         glfwPollEvents();
-
 
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
@@ -114,13 +97,7 @@ void App::Go() {
                      ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize |
                      ImGuiWindowFlags_NoScrollbar);
 
-        // Background
-        ImGui::GetWindowDrawList()->AddImage(
-                reinterpret_cast<ImTextureID>(bg),
-                ImVec2(0.0f, 0.0f),
-                ImVec2(width, height),
-                ImVec2(0.0f, 0.0f),
-                ImVec2(Interface::GetDPIScaling(), Interface::GetDPIScaling()));
+        // Do SKIA!!
         skia->MakeFrame();
 
         // Render world
@@ -137,6 +114,7 @@ void App::Go() {
         int display_w, display_h;
         glfwGetFramebufferSize(window, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
+        glClearColor(0.0,0.0,0.0,1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
@@ -149,7 +127,6 @@ App::~App() {
     cairo_surface_destroy(surface);
     glBindTexture(GL_TEXTURE_2D, 0);
     glDeleteTextures(1, &render);
-    glDeleteTextures(1, &bg);
     Interface::ShutdownBlur();
 }
 

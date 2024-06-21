@@ -14,7 +14,6 @@ private:
     cairo_surface_t *surface;
     cairo_t *cr;
     GLuint render;
-    GLuint bg;
     const float ui_font_size = 24.0f;
     std::unique_ptr<Skia> skia;
 

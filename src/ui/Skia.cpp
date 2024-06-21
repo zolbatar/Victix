@@ -52,10 +52,26 @@ void Skia::MakeFrame() {
     SkCanvas *canvas = surface->getCanvas();
 
     // Draw something onto the Skia surface
-    canvas->clear(SkColorSetARGB(0, 0, 0, 255));
+    canvas->clear(SkColorSetARGB(255, 0, 0, 0));
 
+    // Gradient fill
+    SkColor colors[] = {
+            SkColorSetARGB(255, 55, 16, 102),
+            SkColorSetARGB(255, 55, 16, 102),
+            SkColorSetARGB(255, 255, 144, 0)};
+    SkScalar colorPositions[] = {0.0f, 0.25f, 1.0f};
+    SkPoint points[] = {SkPoint::Make(0, height), SkPoint::Make(0, 0)};
+    sk_sp<SkShader> shader = SkGradientShader::MakeLinear(points, colors, colorPositions, 3, SkTileMode::kClamp);
+
+    // Apply the shader to a paint object
     SkPaint paint;
-    for (int i = 0; i < 1000; i++) {
+    paint.setShader(shader);
+    paint.setAntiAlias(true);
+
+    // Draw a rectangle with the gradient on the canvas
+    canvas->drawRect(SkRect::MakeLTRB(0, 0, width, height), paint);
+
+    for (int i = 0; i < 0; i++) {
         paint.reset();
         paint.setColor(SkColorSetARGB(0xFF,
                                       rand() % 0xFF,
@@ -63,14 +79,21 @@ void Skia::MakeFrame() {
                                       rand() % 0xFF));
         paint.setStrokeWidth(5.0f);
         paint.setAntiAlias(true);
-        paint.setMaskFilter(SkMaskFilter::MakeBlur(SkBlurStyle::kSolid_SkBlurStyle, 1.0f));
-//            paint.setMaskFilter(SkMaskFilter::MakeBlur(SkBlurStyle::kInner_SkBlurStyle, 2.0f));
+        paint.setMaskFilter(SkMaskFilter::MakeBlur(SkBlurStyle::kNormal_SkBlurStyle, 0.05f));
         canvas->drawLine(x(gen),
                          y(gen),
                          x(gen),
                          y(gen),
                          paint);
     }
+
+    // Force draw.....WHYYY
+    paint.reset();
+    paint.setColor(SkColorSetARGB(255, 0, 0, 0));
+    paint.setStrokeWidth(5.0f);
+    paint.setAntiAlias(true);
+    paint.setMaskFilter(SkMaskFilter::MakeBlur(SkBlurStyle::kNormal_SkBlurStyle, 0.05f));
+    canvas->drawLine(0, 0, width, 1, paint);
 
     // Flush Skia commands
     context->flushAndSubmit();
