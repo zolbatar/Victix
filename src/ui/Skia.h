@@ -48,4 +48,6 @@ public:
     void EndFrame();
 
     static SkCanvas *GetCanvas() { return surface->getCanvas(); }
+
+    static ImVec2 Reverse(float x, float y);
 };

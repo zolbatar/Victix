@@ -112,3 +112,22 @@ void Skia::StartFrame() {
     surface->getCanvas()->resetMatrix();
     surface->getCanvas()->concat(matrix);
 }
+
+ImVec2 Skia::Reverse(float x, float y) {
+    SkPoint localPoint = SkPoint::Make(x, y);
+
+    // Get the current total matrix
+    SkMatrix currentMatrix = surface->getCanvas()->getTotalMatrix();
+
+    // Calculate the inverse of the current matrix
+    SkMatrix inverseMatrix;
+    if (!currentMatrix.invert(&inverseMatrix)) {
+        std::cerr << "Failed to invert matrix" << std::endl;
+        exit(1);
+    }
+
+    // Map the local point back to screen coordinates
+    SkPoint screenPoint;
+    inverseMatrix.mapPoints(&screenPoint, &localPoint, 1);
+    return {screenPoint.x(), screenPoint.y()};
+}
