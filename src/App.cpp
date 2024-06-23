@@ -5,8 +5,11 @@
 #include "backends/imgui_impl_opengl3.h"
 #include "backends/imgui_impl_glfw.h"
 #include "model/World.h"
-#include "Orbitron-Black.h"
-#include "Orbitron-Regular.h"
+#include "ui/Orbitron-Black.h"
+#include "ui/Orbitron-Regular.h"
+#include "ui/dosis.h"
+#include "ui/Dosis-Bold.h"
+#include "ui/michromo.h"
 
 std::unique_ptr<World> game_world = nullptr;
 ImFont *font_regular;
@@ -32,10 +35,17 @@ App::App(GLFWwindow *window) : window(window) {
     // Set default UI font
     ImFontConfig fontConfig;
     fontConfig.FontDataOwnedByAtlas = false;
-    font_regular = io.Fonts->AddFontFromMemoryTTF(Orbitron_Regular_ttf, Orbitron_Regular_ttf_len,
+/*    font_regular = io.Fonts->AddFontFromMemoryTTF(Orbitron_Regular_ttf, Orbitron_Regular_ttf_len,
                                                   dpi_scaling * ui_font_size, &fontConfig);
     font_bold = io.Fonts->AddFontFromMemoryTTF(Orbitron_Black_ttf, Orbitron_Black_ttf_len, dpi_scaling * ui_font_size,
-                                               &fontConfig);
+                                               &fontConfig);*/
+    font_regular = io.Fonts->AddFontFromMemoryTTF(Dosis_Regular_ttf, Dosis_Regular_ttf_len,
+                                                  dpi_scaling * ui_font_size, &fontConfig);
+    font_bold = io.Fonts->AddFontFromMemoryTTF(Dosis_Bold_ttf, Dosis_Bold_ttf_len,
+                                                  dpi_scaling * ui_font_size, &fontConfig);
+/*    font_regular = io.Fonts->AddFontFromMemoryTTF(Michroma_Regular_ttf, Michroma_Regular_ttf_len,
+                                                  dpi_scaling * ui_font_size, &fontConfig);*/
+//    font_bold = font_regular;
 
     // And build atlases
     io.Fonts->Build();
@@ -50,15 +60,6 @@ App::App(GLFWwindow *window) : window(window) {
 
     // Skia
     skia = std::make_unique<Skia>();
-
-    // Cairo
-    surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
-    cr = cairo_create(surface);
-    render = Interface::CreateTexture(width, height, GL_LINEAR, nullptr);
-    cairo_set_antialias(cr, CAIRO_ANTIALIAS_BEST);
-
-    // Blur stuff
-    Interface::SetupBlur(width, height);
 }
 
 void App::Go() {
@@ -74,18 +75,19 @@ void App::Go() {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+        Skia::StartFrame();
 
         // Build?
         if (game_world == nullptr) {
             ImGuiIO &io = ImGui::GetIO();
             float scale = io.DisplaySize.y / (Terrain::F_TERRAIN_HEIGHT * 3);
             game_world = std::make_unique<World>(scale);
-            game_world->Build(cr);
+            game_world->Build();
         }
 
         // Update things, process input etc.
         if (game_world != nullptr)
-            game_world->Process(cr);
+            game_world->Process();
 
         // Full screen window
         ImGuiViewport *main_viewport = ImGui::GetMainViewport();
@@ -101,7 +103,7 @@ void App::Go() {
         skia->MakeFrame(game_world->GetState());
 
         // Render world
-        game_world->PreRender(cr, surface, render, width, height);
+        game_world->PreRender(width, height);
         skia->EndFrame();
 
         ImGui::End();
@@ -124,11 +126,7 @@ void App::Go() {
 }
 
 App::~App() {
-    cairo_destroy(cr);
-    cairo_surface_destroy(surface);
     glBindTexture(GL_TEXTURE_2D, 0);
-    glDeleteTextures(1, &render);
-    Interface::ShutdownBlur();
 }
 
 ImVec4 HexToImVec4(uint32_t hex) {

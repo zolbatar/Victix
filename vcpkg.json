@@ -6,9 +6,6 @@
     "name" : "stb",
     "version>=" : "2023-04-11#1"
   }, {
-    "name" : "cairo",
-    "version>=" : "1.18.0#1"
-  }, {
     "name" : "box2d",
     "version>=" : "2.4.1#3"
   }, {

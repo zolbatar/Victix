@@ -12,7 +12,6 @@ find_package(glfw3 CONFIG REQUIRED)
 find_package(freetype)
 find_package(box2d CONFIG REQUIRED)
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(cairo REQUIRED IMPORTED_TARGET cairo)
 find_package(Stb REQUIRED)
 find_package(unofficial-skia CONFIG REQUIRED)
 
@@ -36,8 +35,6 @@ add_executable(${PROJECT_NAME}
         src/model/PerlinNoise.h
         src/ui/Interface.cpp
         src/model/WorldPosition.h
-        src/ui/CairoDebugDraw.h
-        src/ui/CairoDebugDraw.h
         src/objects/Object.cpp
         src/objects/Object.h
         src/objects/Generic.cpp
@@ -60,6 +57,5 @@ target_link_libraries(${PROJECT_NAME}
         OpenGL::GL
         unofficial::skia::skia
         box2d::box2d
-        PkgConfig::cairo
         Freetype::Freetype
         glfw)

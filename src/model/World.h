@@ -3,10 +3,8 @@
 #include <list>
 #include <memory>
 #include <GLFW/glfw3.h>
-#include <cairo.h>
 #include "Terrain.h"
 #include "WorldPosition.h"
-#include "../ui/CairoDebugDraw.h"
 #include <box2d/box2d.h>
 #include "../objects/Object.h"
 
@@ -34,7 +32,6 @@ private:
     const float timeStep = 1.0f / 60.0f;
     const int32 velocityIterations = 6;
     const int32 positionIterations = 2;
-    CairoDebugDraw cairoDebugDraw;
     std::list<std::unique_ptr<Object>> objects;
 
 public:
@@ -43,11 +40,12 @@ public:
 
     World(float scale);
 
-    void Build(cairo_t *cr);
+    void Build();
 
-    void PreRender(cairo_t *cr, cairo_surface_t *surface, GLuint render, float width, float height);
+    void PreRender(float width, float height);
 
-    void Process(cairo_t *cr);
+
+    void Process();
 
     std::list<std::unique_ptr<Object>> &GetObjects() { return objects; }
 

@@ -33,69 +33,37 @@ World::World(float scale) {
     b2Vec2 gravity(0.0f, -10.0f);
     world = std::make_unique<b2World>(gravity);
     terrain = std::make_unique<Terrain>();
-
-    // Debug draw
-    cairoDebugDraw.SetFlags(b2Draw::e_shapeBit | b2Draw::e_jointBit | b2Draw::e_aabbBit | b2Draw::e_pairBit |
-                            b2Draw::e_centerOfMassBit);
-    world->SetDebugDraw(&cairoDebugDraw);
 }
 
-void World::Build(cairo_t *cr) {
+void World::Build() {
     std::vector<double> &heights = terrain->GetHeights();
 
     int idx = 32;
     float x = idx - Terrain::F_TERRAIN_WIDTH / 2;
-    Emplacement::AddEmplacement(cr, x, (float) heights[idx] + 5, true, Player::FRIENDLY);
+    Emplacement::AddEmplacement( x, (float) heights[idx] + 5, true, Player::FRIENDLY);
 }
 
-void World::PreRender(cairo_t *cr, cairo_surface_t *surface, GLuint render, float width, float height) {
+void World::PreRender(float width, float height) {
     ImGuiIO &io = ImGui::GetIO();
-    cairoDebugDraw.SetCR(cr);
     state.offset_y = 0;
-
-    // Clear the surface with a transparent color
-    cairo_set_source_rgba(cr, 0.0, 0.0, 0.0, 0.0); // Fully transparent
-    cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
-    cairo_paint(cr);
 
     // Terrain
     auto canvas = Skia::GetCanvas();
     canvas->save();
     canvas->translate(io.DisplaySize.x - (state.offset_x * state.scale),
-                      (float)(Terrain::F_TERRAIN_HEIGHT) * state.scale);
+                      io.DisplaySize.y * Interface::GetDPIScaling() -
+                      (float) (Terrain::F_TERRAIN_HEIGHT * 2) * state.scale);
     canvas->scale(state.scale, state.scale);
-    terrain->Render(cr, state);
-    terrain->RenderSkia(state);
-    canvas->restore();
+    terrain->RenderSkia(state, 255, false, false, SkColorSetARGB(255, 25, 25, 112));
 
     // Objects
     for (auto &obj: objects) {
-        obj->Render(cr);
+//        obj->Render(cr);
     }
 
-    // Render debug draw using Cairo
-/*    cairo_set_line_width(cr, 0.1);
-    world->DebugDraw();*/
-
     // Minimap
-    cairo_restore(cr);
-    RenderMinimap(cr, state);
-
-    // Write to texture and blit
-    cairo_surface_flush(surface);
-    glBindTexture(GL_TEXTURE_2D, render);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height,
-                 0, GL_BGRA, GL_UNSIGNED_BYTE,
-                 cairo_image_surface_get_data(surface));
-
-    // Blur
-//    auto out = Interface::DoBlur(render, width, height);
-    ImGui::GetWindowDrawList()->AddImage(
-            reinterpret_cast<ImTextureID>(render),
-            ImVec2(0.0f, 0.0f),
-            ImVec2(width, height),
-            ImVec2(0.0f, 0.0f),
-            ImVec2(Interface::GetDPIScaling(), Interface::GetDPIScaling()));
+    canvas->restore();
+    RenderMinimap( state);
 
     ImGui::BeginChild("Position", ImVec2(640, 360), false,
                       ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration);
@@ -116,7 +84,7 @@ void World::PreRender(cairo_t *cr, cairo_surface_t *surface, GLuint render, floa
     ImGui::EndChild();
 }
 
-void World::Process(cairo_t *cr) {
+void World::Process() {
     ImGuiIO &io = ImGui::GetIO();
     ImVec2 pos = ImGui::GetMousePos();
 
@@ -161,7 +129,7 @@ void World::Process(cairo_t *cr) {
         add_mode = false;
         float x = (pos.x - io.DisplaySize.x / 2) * Interface::GetDPIScaling() / state.scale + state.offset_x;
         float y = (io.DisplaySize.y - pos.y) * Interface::GetDPIScaling() / state.scale + state.offset_y;
-        Emplacement::AddEmplacement(cr, x, y, true, Player::FRIENDLY);
+        Emplacement::AddEmplacement(x, y, true, Player::FRIENDLY);
     }
 
     // Move?

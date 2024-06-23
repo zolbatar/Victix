@@ -23,7 +23,7 @@ Emplacement::Emplacement(float x, float y, Player player) : Object(x, y, player)
     body->CreateFixture(&fixtureDef);
 }
 
-void Emplacement::AddEmplacement(cairo_t *cr, float x, float y, bool final, Player player) {
+void Emplacement::AddEmplacement(float x, float y, bool final, Player player) {
     auto &heights = terrain->GetHeights();
 
     // Align X
@@ -61,7 +61,7 @@ void Emplacement::AddEmplacement(cairo_t *cr, float x, float y, bool final, Play
                     previous[i - game_world->idx1] = (float) heights[i];
                 }
 
-                Emplacement::RenderInternal(cr, x, y, 0, player, true, false);
+                Emplacement::RenderInternal(x, y, 0, player, true, false);
                 return;
             }
         }
@@ -86,7 +86,7 @@ void Emplacement::AddEmplacement(cairo_t *cr, float x, float y, bool final, Play
             heights[i] = y - size / 2;
         }
 
-        Emplacement::RenderInternal(cr, x, y, 0, player, true, true);
+        Emplacement::RenderInternal(x, y, 0, player, true, true);
     }
 }
 
@@ -94,11 +94,11 @@ bool Emplacement::Update() {
     return false;
 }
 
-void Emplacement::Render(cairo_t *cr) {
+void Emplacement::Render() {
     float x = body->GetPosition().x;
     float y = body->GetPosition().y;
     float a = body->GetAngle();
-    RenderInternal(cr, x, y, a, player, false, true);
+    RenderInternal(x, y, a, player, false, true);
 }
 
 void Emplacement::Clear() {
@@ -116,8 +116,8 @@ Type Emplacement::Type() {
     return Type::EMPLACEMENT;
 }
 
-void Emplacement::RenderInternal(cairo_t *cr, float x, float y, float a, Player player, bool outline, bool valid) {
-    cairo_save(cr);
+void Emplacement::RenderInternal(float x, float y, float a, Player player, bool outline, bool valid) {
+/*    cairo_save(cr);
     cairo_translate(cr, x, y);
     cairo_rotate(cr, a);
     cairo_translate(cr, -x, -y);
@@ -156,7 +156,7 @@ void Emplacement::RenderInternal(cairo_t *cr, float x, float y, float a, Player 
     }
     cairo_set_line_width(cr, 1.5);
     cairo_stroke(cr);
-    cairo_restore(cr);
+    cairo_restore(cr);*/
 }
 
 

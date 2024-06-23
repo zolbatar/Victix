@@ -1,7 +1,6 @@
 #pragma once
 
 #include <GLFW/glfw3.h>
-#include <cairo.h>
 #include "ui/Interface.h"
 #include "ui/Skia.h"
 
@@ -11,9 +10,6 @@ private:
     GLFWmonitor *primary;
     const GLFWvidmode *mode;
     bool show_demo_window = false;
-    cairo_surface_t *surface;
-    cairo_t *cr;
-    GLuint render;
     const float ui_font_size = 24.0f;
     std::unique_ptr<Skia> skia;
 

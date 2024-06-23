@@ -21,6 +21,7 @@
 #include "include/gpu/ganesh/gl/GrGLBackendSurface.h"
 #include "include/gpu/gl/GrGLInterface.h"
 #include "../model/WorldPosition.h"
+#include "include/utils/SkShadowUtils.h"
 
 #include <OpenGL/gl.h>
 #include <GLFW/glfw3.h>
@@ -39,6 +40,8 @@ private:
 
 public:
     Skia();
+
+    static void StartFrame();
 
     void MakeFrame(WorldPosition &state);
 

@@ -83,6 +83,7 @@ int main() {
     ImGui_ImplOpenGL3_Init(glsl_version);
     glfwSetScrollCallback(window, glfw_scroll_callback);
 
+    Interface::CreateShader();
     App app(window);
     app.Go();
 

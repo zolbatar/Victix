@@ -1,17 +1,19 @@
 #pragma once
 
 #include <vector>
-#include <cairo.h>
 #include "PerlinNoise.h"
 #include "WorldPosition.h"
 #include <box2d/box2d.h>
 #include "World.h"
+#include "../ui/Skia.h"
+#include <include/core/SkPaint.h>
 
 class Terrain {
 private:
     const int DEPTH = 3;
     const float FREQ = 0.01f;
     std::vector<double> heights;
+    std::vector<double> original_heights;
     b2Body *groundBody;
     b2Fixture *fixture = nullptr;
 
@@ -23,11 +25,11 @@ public:
 
     std::vector<double> &GetHeights() { return heights; }
 
+    std::vector<double> &GetOriginalHeights() { return original_heights; }
+
     Terrain();
 
-    void Render(cairo_t *cr, WorldPosition &state);
-
-    void RenderSkia(WorldPosition &state);
+    void RenderSkia(WorldPosition &state, int alpha, bool flip_x, bool flip_y, SkColor colour);
 
     void GenerateTerrain(PerlinNoise &perlin);
 

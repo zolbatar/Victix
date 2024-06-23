@@ -14,17 +14,17 @@ float Interface::dpi = 72.0f;
 float Interface::dpi_scaling = 1.0;
 int Interface::width;
 int Interface::height;
-
-GLuint Interface::blur_texture_h, Interface::blur_texture_v, Interface::final_texture;
-GLuint Interface::fbo_h, Interface::fbo_v, Interface::fbo_final;
-GLuint Interface::blur_shader_program;
-GLuint Interface::final_shader_program;
+GLuint Interface::crt_shader;
 
 #ifdef __APPLE__
 #define glGenVertexArrays glGenVertexArraysAPPLE
 #define glBindVertexArray glBindVertexArrayAPPLE
 #define glDeleteVertexArrays glDeleteVertexArraysAPPLE
 #endif
+
+void Interface::CreateShader() {
+    crt_shader = CreateShaderProgram(crt_vertex_shader, crt_fragment_shader);
+}
 
 void Interface::RenderDropShadow(ImTextureID tex_id, ImVec2 pos, ImVec2 _size, float size, ImU8 opacity) {
     ImVec2 p = pos;
@@ -68,20 +68,6 @@ GLuint Interface::CreateTexture(int _width, int _height, GLint type, const GLvoi
     return texture;
 }
 
-cairo_pattern_t *Interface::SetLinear(double cx, double cy, double length, double degrees) {
-    // Define the angle in radians
-    double angle = degrees * 3.14159265358979323846 / 180.0;
-
-    // Calculate the start and end points of the gradient
-    double x1 = cx - length * cos(angle) / 2;
-    double y1 = cy - length * sin(angle) / 2;
-    double x2 = cx + length * cos(angle) / 2;
-    double y2 = cy + length * sin(angle) / 2;
-
-    // Create a linear gradient pattern at the specified angle
-    return cairo_pattern_create_linear(x1, y1, x2, y2);
-}
-
 // Easing function: easeInOutQuad
 // t: current time (in range [0, duration])
 // b: start value
@@ -107,90 +93,6 @@ GLuint Interface::CreateFBO(GLuint texture) {
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     return fbo;
-}
-
-void Interface::SetupBlur(int _width, int _height) {
-    glGenTextures(1, &blur_texture_h);
-    glGenTextures(1, &blur_texture_v);
-    glGenTextures(1, &final_texture);
-
-    GLint format1 = GL_RGBA;
-    GLint format2 = GL_BGRA;
-
-    // Set up blur textures
-    glBindTexture(GL_TEXTURE_2D, blur_texture_h);
-    glTexImage2D(GL_TEXTURE_2D, 0, format1, _width, _height, 0, format2, GL_UNSIGNED_BYTE, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    glBindTexture(GL_TEXTURE_2D, blur_texture_v);
-    glTexImage2D(GL_TEXTURE_2D, 0, format1, _width, _height, 0, format2, GL_UNSIGNED_BYTE, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    // Setup final texture
-    glBindTexture(GL_TEXTURE_2D, final_texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, format1, _width, _height, 0, format2, GL_UNSIGNED_BYTE, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    fbo_h = CreateFBO(blur_texture_h);
-    fbo_v = CreateFBO(blur_texture_v);
-    fbo_final = CreateFBO(final_texture);
-
-    blur_shader_program = CreateShaderProgram(blur_vertex_shader_src, blur_fragment_shader_src);
-    final_shader_program = CreateShaderProgram(blur_vertex_shader_src, final_fragment_shader_source);
-}
-
-void Interface::ShutdownBlur() {
-    glDeleteProgram(blur_shader_program);
-    glDeleteProgram(final_shader_program);
-    glDeleteTextures(1, &blur_texture_h);
-    glDeleteTextures(1, &blur_texture_v);
-    glDeleteTextures(1, &final_texture);
-    glDeleteFramebuffers(1, &fbo_h);
-    glDeleteFramebuffers(1, &fbo_v);
-    glDeleteFramebuffers(1, &fbo_final);
-}
-
-GLuint Interface::DoBlur(GLuint cairo_texture, int _width, int _height) {
-    static GLfloat weight[5] = {0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216};
-
-    // First pass: horizontal blur
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo_h);
-    glViewport(0, 0, _width, _height);
-    glClear(GL_COLOR_BUFFER_BIT);
-    glUseProgram(blur_shader_program);
-    auto a = glGetUniformLocation(blur_shader_program, "horizontal");
-    auto b = glGetUniformLocation(blur_shader_program, "weight");
-    glUniform1i(glGetUniformLocation(blur_shader_program, "horizontal"), 1);
-    glUniform1fv(glGetUniformLocation(blur_shader_program, "weight"), 5, weight);
-    glBindTexture(GL_TEXTURE_2D, cairo_texture);
-    RenderQuad();
-
-    // Second pass: vertical blur
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo_v);
-    glViewport(0, 0, _width, _height);
-    glClear(GL_COLOR_BUFFER_BIT);
-    glUseProgram(blur_shader_program);
-    glUniform1i(glGetUniformLocation(blur_shader_program, "horizontal"), 0);
-    glUniform1fv(glGetUniformLocation(blur_shader_program, "weight"), 5, weight);
-    glBindTexture(GL_TEXTURE_2D, cairo_texture);
-    RenderQuad();
-
-    // Final render: combine original and blurred textures
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo_final);
-    glViewport(0, 0, _width, _height);
-    glClear(GL_COLOR_BUFFER_BIT);
-    glUseProgram(final_shader_program);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, blur_texture_h);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, blur_texture_v);
-    RenderQuad();
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    return final_texture;
 }
 
 GLuint Interface::CreateShaderProgram(const char *vertexShaderSource, const char *fragmentShaderSource) {
@@ -221,14 +123,14 @@ GLuint Interface::CreateShaderProgram(const char *vertexShaderSource, const char
 }
 
 GLuint Interface::CompileShader(const char *shaderSource, GLenum shaderType) {
-/*    GLuint shader = glCreateShader(shaderType);
+    GLuint shader = glCreateShader(shaderType);
     glShaderSource(shader, 1, &shaderSource, nullptr);
-    glCompileShader(shader);*/
+    glCompileShader(shader);
 
-    const GLchar *fragment_shader_with_version[2] = {glsl_version_init, shaderSource};
+/*    const GLchar *fragment_shader_with_version[2] = {glsl_version_init, shaderSource};
     GLuint shader = glCreateShader(shaderType);
     glShaderSource(shader, 2, fragment_shader_with_version, nullptr);
-    glCompileShader(shader);
+    glCompileShader(shader);*/
 
     // Check for compile errors
     GLint success;

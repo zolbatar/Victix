@@ -14,11 +14,11 @@ Generic::Generic(float x, float y, Player player) : Object(x, y, player) {
     body->CreateFixture(&fixtureDef);
 }
 
-void Generic::Render(cairo_t *cr) {
-    float x = body->GetPosition().x;
+void Generic::Render() {
+/*    float x = body->GetPosition().x;
     float y = body->GetPosition().y;
     cairo_set_source_rgb(cr, 0.0, 0.0, 0.0);
     cairo_rectangle(cr, x - 0.5, y - 0.5, 1.0, 1.0);
 //    cairo_arc(cr, x, y, 1.0, 0, 2 * M_PI);
-    cairo_fill(cr);
+    cairo_fill(cr);*/
 }

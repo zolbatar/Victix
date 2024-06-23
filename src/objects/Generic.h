@@ -8,7 +8,7 @@ protected:
     bool Update() override;
 
 public:
-    void Render(cairo_t *cr) override;
+    void Render() override;
 
     Generic(float x, float y, Player player);
 };

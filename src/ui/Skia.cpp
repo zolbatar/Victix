@@ -65,7 +65,7 @@ void Skia::MakeFrame(WorldPosition &state) {
             SkColorSetARGB(255, 255, 144, 0)
     };
     SkScalar colorPositions[] = {0.0f/*, 0.5f*/, 1.0f};
-    SkPoint points[] = {SkPoint::Make(0, height), SkPoint::Make(0, 0)};
+    SkPoint points[] = {SkPoint::Make(0, 0), SkPoint::Make(0, height)};
     sk_sp<SkShader> shader = SkGradientShader::MakeLinear(points, colors, colorPositions, 2, SkTileMode::kClamp);
 
     // Apply the shader to a paint object
@@ -75,22 +75,6 @@ void Skia::MakeFrame(WorldPosition &state) {
     // Draw a rectangle with the gradient on the canvas
     canvas->drawRect(SkRect::MakeLTRB(0, 0, width, height), paint);
 
-    for (int i = 0; i < 0; i++) {
-        paint.reset();
-        paint.setColor(SkColorSetARGB(0xFF,
-                                      rand() % 0xFF,
-                                      rand() % 0xFF,
-                                      rand() % 0xFF));
-        paint.setStrokeWidth(5.0f);
-        paint.setAntiAlias(true);
-        paint.setMaskFilter(SkMaskFilter::MakeBlur(SkBlurStyle::kNormal_SkBlurStyle, 0.05f));
-        canvas->drawLine(x(gen),
-                         y(gen),
-                         x(gen),
-                         y(gen),
-                         paint);
-    }
-
     // Force draw.....WHYYY
     paint.reset();
     paint.setColor(SkColorSetARGB(255, 0, 0, 0));
@@ -98,29 +82,17 @@ void Skia::MakeFrame(WorldPosition &state) {
     paint.setAntiAlias(true);
     paint.setMaskFilter(SkMaskFilter::MakeBlur(SkBlurStyle::kNormal_SkBlurStyle, 0.05f));
     canvas->drawLine(0, 0, width, 1, paint);
-
-/*    SkPath path;
-    auto &heights = terrain->GetHeights();
-    for (unsigned int i = 0; i < 100; i++) {
-        if (i == 0)
-            path.lineTo(i * 10, heights[i]*1);
-        else
-            path.moveTo(i * 10, heights[i]*1);
-    }
-    path.close();
-    paint.reset();
-    paint.setColor(SkColorSetARGB(0xFF,
-                                  rand() % 0xFF,
-                                  rand() % 0xFF,
-                                  rand() % 0xFF));
-    paint.setStyle(SkPaint::kFill_Style);
-    canvas->drawPath(path, paint);*/
 }
 
 void Skia::EndFrame() {
 
     // Flush Skia commands
     context->flushAndSubmit();
+
+    // Assume shaderProgram is the compiled and linked shader program
+/*    glUseProgram(Interface::crt_shader);
+    glUniform1i(glGetUniformLocation(Interface::crt_shader, "screenTexture"), textureID); // Texture unit 0
+    glUniform1f(glGetUniformLocation(Interface::crt_shader, "time"), glfwGetTime());*/
 
     // Render
     ImGui::GetWindowDrawList()->AddImage(
@@ -130,4 +102,13 @@ void Skia::EndFrame() {
             ImVec2(0.0f, 0.0f),
             ImVec2(Interface::GetDPIScaling(), Interface::GetDPIScaling()));
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Skia::StartFrame() {
+    ImGuiIO &io = ImGui::GetIO();
+    SkMatrix matrix;
+    matrix.setScale(1, -1);
+    matrix.postTranslate(0, io.DisplaySize.y * Interface::GetDPIScaling());
+    surface->getCanvas()->resetMatrix();
+    surface->getCanvas()->concat(matrix);
 }

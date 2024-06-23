@@ -2,7 +2,6 @@
 
 #include <memory>
 #include <box2d/box2d.h>
-#include <cairo.h>
 #include "Types.h"
 #include "Player.h"
 
@@ -22,7 +21,7 @@ public:
 
     virtual Type Type() = 0;
 
-    virtual void Render(cairo_t *cr) = 0;
+    virtual void Render() = 0;
 
     virtual bool Update() = 0;
 

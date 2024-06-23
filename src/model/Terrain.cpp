@@ -1,12 +1,13 @@
 #include <random>
 #include <include/core/SkPoint.h>
 #include <include/core/SkPath.h>
-#include <include/core/SkPaint.h>
+#include <include/effects/SkImageFilters.h>
 #include "Terrain.h"
 #include "../ui/Interface.h"
-#include "../ui/Skia.h"
 #include "World.h"
 #include "../objects/Emplacement.h"
+#include "include/core/SkMatrix.h"
+#include "include/core/SkPoint3.h"
 
 extern std::unique_ptr<b2World> world;
 extern std::unique_ptr<World> game_world;
@@ -25,6 +26,7 @@ void Terrain::GenerateTerrain(PerlinNoise &perlin) {
         heights[x] = (pn * TERRAIN_HEIGHT) + TERRAIN_HEIGHT / 4;
 //        assert(heights[x] > 0);
     }
+    original_heights = heights;
 
     UpdateBox2D();
 }
@@ -61,14 +63,17 @@ Terrain::Terrain() {
     GenerateTerrain(noise);
 }
 
-void Terrain::RenderSkia(WorldPosition &state) {
+void Terrain::RenderSkia(WorldPosition &state, int alpha, bool flip_x, bool flip_y, SkColor colour) {
     ImGuiIO &io = ImGui::GetIO();
     auto canvas = Skia::GetCanvas();
 
     // Build points
     SkPoint _points[Terrain::TERRAIN_WIDTH];
     for (unsigned int i = 0; i < Terrain::TERRAIN_WIDTH; i++) {
-        _points[i] = SkPoint::Make(i - F_TERRAIN_WIDTH / 2, heights[i]);
+        if (flip_x || flip_y)
+            _points[i] = SkPoint::Make(i - F_TERRAIN_WIDTH / 2, original_heights[i]);
+        else
+            _points[i] = SkPoint::Make(i - F_TERRAIN_WIDTH / 2, heights[i]);
     }
 
     // Draw path
@@ -78,68 +83,30 @@ void Terrain::RenderSkia(WorldPosition &state) {
         path.lineTo(_points[i].x(), _points[i].y());
     }
     SkPath outer(path);
-    path.lineTo((F_TERRAIN_WIDTH / 2), -F_TERRAIN_HEIGHT);
-    path.lineTo(-(F_TERRAIN_WIDTH / 2), -F_TERRAIN_HEIGHT);
+    path.lineTo((F_TERRAIN_WIDTH / 2), F_TERRAIN_HEIGHT * 2);
+    path.lineTo(-(F_TERRAIN_WIDTH / 2), F_TERRAIN_HEIGHT * 2);
     path.close();
 
     // Fill
     SkPaint paint;
-    paint.setColor(SkColorSetARGB(255, 25, 25, 112));
-    paint.setStrokeWidth(1.0f);
+    float adj = alpha / 255.0;
+    sk_sp<SkImageFilter> dropShadow = SkImageFilters::DropShadow(
+            5.0f * adj, 5.0f * adj,  // dx, dy
+            10.0f * adj, 10.0f * adj,    // sigmaX, sigmaY
+            SkColorSetARGB(160 * adj, 0, 0, 0), // shadow color
+            nullptr        // input (nullptr means apply to the paint directly)
+    );
+    paint.setImageFilter(dropShadow);
+    paint.setColor(colour);
     paint.setAntiAlias(true);
     paint.setStyle(SkPaint::kFill_Style);
     canvas->drawPath(path, paint);
 
-    // Outline blue
-    paint.reset();
-    paint.setColor(SkColorSetARGB(255, 255, 255, 255)); // Outline color
-    paint.setStyle(SkPaint::kStroke_Style); // Use stroke style
-    paint.setAntiAlias(true);
-    paint.setMaskFilter(SkMaskFilter::MakeBlur(SkBlurStyle::kNormal_SkBlurStyle, 6.0f / state.scale));
-    paint.setStrokeWidth(2.0f / state.scale); // Set the stroke width
-    canvas->drawPath(outer, paint);
-
     // Outline
     paint.reset();
-    paint.setColor(SkColorSetARGB(128, 255, 255, 255)); // Outline color
+    paint.setARGB(alpha, 255, 255, 255); // Outline color
     paint.setStyle(SkPaint::kStroke_Style); // Use stroke style
     paint.setAntiAlias(true);
     paint.setStrokeWidth(2.0f / state.scale); // Set the stroke width
     canvas->drawPath(outer, paint);
-}
-
-void Terrain::Render(cairo_t *cr, WorldPosition &state) {
-    if (game_world->add_mode) {
-        ImGuiIO &io = ImGui::GetIO();
-        ImVec2 mouse_position = ImGui::GetMousePos();
-        float x = (mouse_position.x - io.DisplaySize.x / 2) * Interface::GetDPIScaling() / state.scale + state.offset_x;
-        float y = (io.DisplaySize.y - mouse_position.y) * Interface::GetDPIScaling() / state.scale + state.offset_y;
-        Emplacement::AddEmplacement(cr, x, y, false, Player::FRIENDLY);
-    }
-
-    // Do it
-    for (unsigned int i = 0; i < TERRAIN_WIDTH; i++) {
-        if (i == 0)
-            cairo_move_to(cr, i - F_TERRAIN_WIDTH / 2, heights[i]);
-        else
-            cairo_line_to(cr, i - F_TERRAIN_WIDTH / 2, heights[i]);
-    }
-    cairo_path_t *path = cairo_copy_path(cr); // Save for outline
-    cairo_line_to(cr, (F_TERRAIN_WIDTH / 2), -F_TERRAIN_HEIGHT);
-    cairo_line_to(cr, -(F_TERRAIN_WIDTH / 2), -F_TERRAIN_HEIGHT);
-    cairo_close_path(cr);
-
-    // Fill
-    cairo_set_source_rgb(cr, 25.0 / 255.0, 25.0 / 255.0, 112.0 / 255.0);
-    cairo_fill(cr);
-
-    // Outline
-    cairo_append_path(cr, path);
-    cairo_set_source_rgb(cr, 0.0 / 255.0, 255.0 / 255.0, 255.0 / 255.0);
-    cairo_set_line_width(cr, 1.0);
-    cairo_stroke(cr);
-
-    if (game_world->add_mode) {
-        Emplacement::Restore();
-    }
 }
