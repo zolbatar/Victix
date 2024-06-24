@@ -1,4 +1,6 @@
+#include <include/core/SkPaint.h>
 #include "Generic.h"
+#include "../ui/Skia.h"
 
 bool Generic::Update() {
     return Object::ImpactUpdate();
@@ -15,10 +17,14 @@ Generic::Generic(float x, float y, Player player) : Object(x, y, player) {
 }
 
 void Generic::Render() {
-/*    float x = body->GetPosition().x;
+    float x = body->GetPosition().x;
     float y = body->GetPosition().y;
-    cairo_set_source_rgb(cr, 0.0, 0.0, 0.0);
-    cairo_rectangle(cr, x - 0.5, y - 0.5, 1.0, 1.0);
-//    cairo_arc(cr, x, y, 1.0, 0, 2 * M_PI);
-    cairo_fill(cr);*/
+    auto canvas = Skia::GetCanvas();
+    canvas->save();
+    SkPaint paint;
+    paint.setStyle(SkPaint::Style::kFill_Style);
+    paint.setARGB(255, 0, 0, 0);
+    auto rect = SkRect::MakeXYWH(x - 0.5, y - 0.5, 1.0, 1.0);
+    canvas->drawRect(rect, paint);
+    canvas->restore();
 }

@@ -120,30 +120,37 @@ void Emplacement::RenderInternal(float x, float y, float a, Player player, bool 
     auto canvas = Skia::GetCanvas();
     canvas->save();
 
-    cairo_translate(cr, x, y);
-    cairo_rotate(cr, a);
-    cairo_translate(cr, -x, -y);
-    cairo_move_to(cr, x + size * 0.5, y - size * 0.5);
-    cairo_line_to(cr, x + size * 0.3, y + size * 0.5);
-    cairo_line_to(cr, x - size * 0.3, y + size * 0.5);
-    cairo_line_to(cr, x - size * 0.5, y - size * 0.5);
-    cairo_close_path(cr);
-    cairo_path_t *path = cairo_copy_path(cr); // Save for outline
+    // Position and rotation
+    canvas->translate(x, y);
+    canvas->rotate(a);
+    canvas->translate(-x, -y);
+
+    // Build path
+    SkPath path;
+    path.moveTo(x + size * 0.5, y - size * 0.5);
+    path.lineTo(x + size * 0.3, y + size * 0.5);
+    path.lineTo(x - size * 0.3, y + size * 0.5);
+    path.lineTo(x - size * 0.5, y - size * 0.5);
+    path.close();
+    SkPath outline_path;
+    outline_path = path;
+    SkPaint paint;
+    paint.setStyle(SkPaint::Style::kFill_Style);
+    paint.setAntiAlias(true);
     if (!outline) {
         if (player == Player::FRIENDLY)
-            cairo_set_source_rgb(cr, 0.0, 0.0, 0.25);
+            paint.setARGB(255, 0, 0, 64);
         else
-            cairo_set_source_rgb(cr, 0.25, 0.0, 0.0);
-        cairo_fill(cr);
+            paint.setARGB(255, 64, 0, 0);
+        canvas->drawPath(path, paint);
     }
 
     // Outline
-    cairo_append_path(cr, path);
     if (player == Player::FRIENDLY)
-        cairo_set_source_rgba(cr, 0.0 / 255.0, 0.0 / 255.0, 255.0 / 255.0, valid ? 1.0 : 0.5);
+        paint.setARGB(valid ? 255 : 128, 0, 0, 255);
     else
-        cairo_set_source_rgba(cr, 255.0 / 255.0, 0.0 / 255.0, 0.0 / 255.0, valid ? 1.0 : 0.5);
-    if (outline) {
+        paint.setARGB(valid ? 255 : 128, 255, 0, 0);
+/*    if (outline) {
         // Define the dash pattern (dash length, gap length)
         double dashes[] = {1.0, 3.0};
         int num_dashes = sizeof(dashes) / sizeof(dashes[0]);
@@ -155,9 +162,10 @@ void Emplacement::RenderInternal(float x, float y, float a, Player player, bool 
         // Set the dash pattern
         cairo_set_dash(cr, dashes, num_dashes, offset);
         cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
-    }
-    cairo_set_line_width(cr, 1.5);
-    cairo_stroke(cr);
+    }*/
+    paint.setStyle(SkPaint::Style::kStroke_Style);
+    paint.setStrokeWidth(1.5);
+    canvas->drawPath(outline_path, paint);
     canvas->restore();
 }
 

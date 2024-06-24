@@ -58,7 +58,7 @@ void World::PreRender(float width, float height) {
 
     // Objects
     for (auto &obj: objects) {
-        obj->Render(cr);
+        obj->Render();
     }
 
     // Minimap
