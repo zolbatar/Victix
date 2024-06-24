@@ -21,6 +21,8 @@ public:
 
     virtual Type Type() = 0;
 
+    Player GetPlayer() { return player; };
+
     virtual void Render() = 0;
 
     virtual bool Update() = 0;

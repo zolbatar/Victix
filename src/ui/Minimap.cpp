@@ -31,16 +31,17 @@ void RenderMinimap(WorldPosition &state) {
     canvas->drawRect(rect, paint);
 
     // Build points
+    float adj = Terrain::F_TERRAIN_HEIGHT * 3;
     SkPoint _points[Terrain::TERRAIN_WIDTH];
     for (unsigned int i = 0; i < Terrain::TERRAIN_WIDTH; i++) {
-        _points[i] = SkPoint::Make((float) i, (float) heights[i]);
+        _points[i] = SkPoint::Make((float) i, adj - (float) heights[i]);
     }
 
     // Draw path
     SkPath path;
-    path.moveTo(_points[0].x(), _points[0].y() + Terrain::F_TERRAIN_HEIGHT * 2);
+    path.moveTo(_points[0].x(), _points[0].y());
     for (int i = 1; i < sizeof(_points) / sizeof(_points[0]); ++i) {
-        path.lineTo(_points[i].x(), _points[i].y() + Terrain::F_TERRAIN_HEIGHT * 2);
+        path.lineTo(_points[i].x(), _points[i].y());
     }
     SkPath outer;
     outer = path;
@@ -59,25 +60,32 @@ void RenderMinimap(WorldPosition &state) {
     paint.setARGB(255, 255, 255, 255); // Outline color
     paint.setStyle(SkPaint::kStroke_Style); // Use stroke style
     paint.setAntiAlias(true);
-    paint.setStrokeWidth(2.0f / state.scale * divider); // Set the stroke width
+    paint.setStrokeWidth(1.0f * divider); // Set the stroke width
     canvas->drawPath(outer, paint);
 
     // And objects
-/*    for (auto &obj: game_world->GetObjects()) {
+    for (auto &obj: game_world->GetObjects()) {
         b2Vec2 _pos = obj->GetBody()->GetPosition();
-        cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
-        float sz = obj->GetMinimapSize() * state.scale;
-        cairo_rectangle(cr, _pos.x - sz / 2, _pos.y - sz / 2, sz, sz);
-        cairo_fill(cr);
-        sz = 0.1f;// * state.scale;
-        switch (obj->Type()) {
-            case Type::EMPLACEMENT:
-                cairo_set_source_rgb(cr, 0.0, 0.0, 1.0);
+        float sz = obj->GetMinimapSize() * divider;
+        rect = SkRect::MakeXYWH(_pos.x + (Terrain::TERRAIN_WIDTH / 2) - sz / 2,
+                                (Terrain::TERRAIN_HEIGHT * 3) - _pos.y - sz / 2,
+                                sz, sz);
+        paint.setStyle(SkPaint::Style::kFill_Style);
+        switch (obj->GetPlayer()) {
+            case Player::ENEMY:
+                paint.setARGB(255, 255, 0, 0);
+                break;
+            case Player::FRIENDLY:
+                paint.setARGB(255, 0, 0, 255);
                 break;
         }
-        cairo_rectangle(cr, _pos.x - sz / 2, _pos.y - sz / 2, sz, sz);
-        cairo_stroke(cr);
-    }*/
+        canvas->drawRect(rect, paint);
+
+        paint.setARGB(255, 255, 255, 0);
+        paint.setStrokeWidth(1.0f * divider); // Set the stroke width
+        paint.setStyle(SkPaint::Style::kStroke_Style);
+        canvas->drawRect(rect, paint);
+    }
 
     // Outline
     SkPath outline;
@@ -96,10 +104,6 @@ void RenderMinimap(WorldPosition &state) {
 //    outline.close();
     canvas->drawPath(outline, paint);
 
-/*    top_left.x /= Interface::GetDPIScaling();
-    top_left.y /= Interface::GetDPIScaling();
-    bottom_right.x /= Interface::GetDPIScaling();
-    bottom_right.y /= Interface::GetDPIScaling();*/
     canvas->restore();
 }
 
