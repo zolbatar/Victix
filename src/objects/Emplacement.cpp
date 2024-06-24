@@ -120,7 +120,7 @@ void Emplacement::RenderInternal(float x, float y, float a, Player player, bool 
     auto canvas = Skia::GetCanvas();
     canvas->save();
 
-    // Position and rotation
+    // Rotation
     canvas->translate(x, y);
     canvas->rotate(a);
     canvas->translate(-x, -y);

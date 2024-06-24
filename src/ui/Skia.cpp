@@ -54,6 +54,7 @@ void Skia::MakeFrame(WorldPosition &state) {
     std::uniform_real_distribution<> y(0.0, height);
 
     SkCanvas *canvas = surface->getCanvas();
+    Skia::StartFrame();
 
     // Draw something onto the Skia surface
     canvas->clear(SkColorSetARGB(255, 0, 0, 0));
@@ -76,12 +77,12 @@ void Skia::MakeFrame(WorldPosition &state) {
     canvas->drawRect(SkRect::MakeLTRB(0, 0, width, height), paint);
 
     // Force draw.....WHYYY
-    paint.reset();
+/*    paint.reset();
     paint.setColor(SkColorSetARGB(255, 0, 0, 0));
     paint.setStrokeWidth(5.0f);
     paint.setAntiAlias(true);
     paint.setMaskFilter(SkMaskFilter::MakeBlur(SkBlurStyle::kNormal_SkBlurStyle, 0.05f));
-    canvas->drawLine(0, 0, width, 1, paint);
+    canvas->drawLine(0, 0, width, 1, paint);*/
 }
 
 void Skia::EndFrame() {
@@ -98,19 +99,14 @@ void Skia::EndFrame() {
     ImGui::GetWindowDrawList()->AddImage(
             reinterpret_cast<ImTextureID>(textureID),
             ImVec2(0.0f, 0.0f),
-            ImVec2(width, height),
-            ImVec2(0.0f, 0.0f),
-            ImVec2(Interface::GetDPIScaling(), Interface::GetDPIScaling()));
+            ImVec2(width / Interface::GetDPIScaling(), height / Interface::GetDPIScaling()),
+            ImVec2(0.0f, 1.0f),
+            ImVec2(1.0f, 0.0f));
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void Skia::StartFrame() {
-    ImGuiIO &io = ImGui::GetIO();
-    SkMatrix matrix;
-    matrix.setScale(1, -1);
-    matrix.postTranslate(0, io.DisplaySize.y * Interface::GetDPIScaling());
     surface->getCanvas()->resetMatrix();
-    surface->getCanvas()->concat(matrix);
 }
 
 ImVec2 Skia::Reverse(float x, float y) {

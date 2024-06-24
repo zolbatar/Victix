@@ -2,10 +2,10 @@
 
 #include <list>
 #include <memory>
-#include <GLFW/glfw3.h>
 #include "Terrain.h"
 #include "WorldPosition.h"
 #include <box2d/box2d.h>
+#include "SkiaDebugDraw.h"
 #include "../objects/Object.h"
 
 enum DragType {
@@ -18,6 +18,7 @@ class World {
 private:
     WorldPosition state;
     ImVec2 last_drag;
+    std::unique_ptr<SkiaDebugDraw> debugDraw;
     DragType dragging = DragType::NONE;
     float left_edge, right_edge;
 
@@ -43,7 +44,6 @@ public:
     void Build();
 
     void PreRender(float width, float height);
-
 
     void Process();
 

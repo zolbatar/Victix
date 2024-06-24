@@ -12,8 +12,6 @@
 extern std::unique_ptr<b2World> world;
 extern std::unique_ptr<World> game_world;
 
-unsigned int next_power_of_2(float x);
-
 static std::random_device rd;  // Random device to seed the generator
 static std::mt19937 gen(rd()); // Standard Mersenne Twister engine seeded with rd()
 static std::uniform_real_distribution<> dis(0.0, Terrain::F_TERRAIN_WIDTH); // Uniform distribution in the range [0, 1)
@@ -34,7 +32,6 @@ void Terrain::GenerateTerrain(PerlinNoise &perlin) {
 void Terrain::UpdateBox2D() {
     if (groundBody != nullptr) {
         world->DestroyBody(groundBody);
-//        groundBody->DestroyFixture(fixture);
     }
 
     // Ground
@@ -83,17 +80,16 @@ void Terrain::RenderSkia(WorldPosition &state, int alpha, bool flip_x, bool flip
         path.lineTo(_points[i].x(), _points[i].y());
     }
     SkPath outer(path);
-    path.lineTo((F_TERRAIN_WIDTH / 2), F_TERRAIN_HEIGHT * 2);
-    path.lineTo(-(F_TERRAIN_WIDTH / 2), F_TERRAIN_HEIGHT * 2);
+    path.lineTo((F_TERRAIN_WIDTH / 2), -F_TERRAIN_HEIGHT);
+    path.lineTo(-(F_TERRAIN_WIDTH / 2), -F_TERRAIN_HEIGHT);
     path.close();
 
     // Fill
     SkPaint paint;
-    float adj = alpha / 255.0;
     sk_sp<SkImageFilter> dropShadow = SkImageFilters::DropShadow(
-            5.0f * adj, 5.0f * adj,  // dx, dy
-            10.0f * adj, 10.0f * adj,    // sigmaX, sigmaY
-            SkColorSetARGB(160 * adj, 0, 0, 0), // shadow color
+            10.0f, -5.0f,  // dx, dy
+            10.0f, 10.0f,    // sigmaX, sigmaY
+            SkColorSetARGB(255, 0, 0, 0), // shadow color
             nullptr        // input (nullptr means apply to the paint directly)
     );
     paint.setImageFilter(dropShadow);

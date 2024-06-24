@@ -75,7 +75,6 @@ void App::Go() {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-        Skia::StartFrame();
 
         // Build?
         if (game_world == nullptr) {

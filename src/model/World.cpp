@@ -33,6 +33,12 @@ World::World(float scale) {
     b2Vec2 gravity(0.0f, -10.0f);
     world = std::make_unique<b2World>(gravity);
     terrain = std::make_unique<Terrain>();
+
+    // Debug draw
+    debugDraw = std::make_unique<SkiaDebugDraw>(Skia::GetCanvas());
+    world->SetDebugDraw(debugDraw.get());
+    debugDraw->SetFlags(b2Draw::e_shapeBit | b2Draw::e_jointBit | b2Draw::e_aabbBit | b2Draw::e_pairBit |
+                        b2Draw::e_centerOfMassBit);
 }
 
 void World::Build() {
@@ -40,7 +46,7 @@ void World::Build() {
 
     int idx = 32;
     float x = idx - Terrain::F_TERRAIN_WIDTH / 2;
-    Emplacement::AddEmplacement( x, (float) heights[idx] + 5, true, Player::FRIENDLY);
+    Emplacement::AddEmplacement(x, (float) heights[idx] + 5, true, Player::FRIENDLY);
 }
 
 void World::PreRender(float width, float height) {
@@ -52,18 +58,36 @@ void World::PreRender(float width, float height) {
     canvas->save();
     canvas->translate(io.DisplaySize.x - (state.offset_x * state.scale),
                       io.DisplaySize.y * Interface::GetDPIScaling() -
-                      (float) (Terrain::F_TERRAIN_HEIGHT * 2) * state.scale);
-    canvas->scale(state.scale, state.scale);
+                      (float) Terrain::F_TERRAIN_HEIGHT * state.scale);
+    canvas->scale(state.scale, -state.scale);
     terrain->RenderSkia(state, 255, false, false, SkColorSetARGB(255, 25, 25, 112));
+    canvas->restore();
 
     // Objects
+    canvas->save();
+    canvas->translate(io.DisplaySize.x - (state.offset_x * state.scale),
+                      io.DisplaySize.y * Interface::GetDPIScaling() -
+                      (float) Terrain::F_TERRAIN_HEIGHT * state.scale);
+    canvas->scale(state.scale, -state.scale);
     for (auto &obj: objects) {
         obj->Render();
+    }
+    canvas->restore();
+
+    // Debug draw
+    if (false) {
+        canvas->save();
+        canvas->translate(io.DisplaySize.x - (state.offset_x * state.scale),
+                          io.DisplaySize.y * Interface::GetDPIScaling() -
+                          (float) (Terrain::F_TERRAIN_HEIGHT) * state.scale);
+        canvas->scale(state.scale, -state.scale);
+        world->DebugDraw();
+        canvas->restore();
     }
 
     // Minimap
     canvas->restore();
-    RenderMinimap( state);
+    RenderMinimap(state);
 
     ImGui::BeginChild("Position", ImVec2(640, 360), false,
                       ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration);
