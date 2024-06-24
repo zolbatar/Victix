@@ -84,10 +84,6 @@ void App::Go() {
             game_world->Build();
         }
 
-        // Update things, process input etc.
-        if (game_world != nullptr)
-            game_world->Process();
-
         // Full screen window
         ImGuiViewport *main_viewport = ImGui::GetMainViewport();
         ImGui::SetNextWindowPos(main_viewport->Pos);
@@ -100,6 +96,10 @@ void App::Go() {
 
         // Do SKIA!!
         skia->MakeFrame(game_world->GetState());
+
+        // Update things, process input etc.
+        if (game_world != nullptr)
+            game_world->Process();
 
         // Render world
         game_world->PreRender(width, height);
@@ -116,7 +116,7 @@ void App::Go() {
         int display_w, display_h;
         glfwGetFramebufferSize(window, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
-        glClearColor(0.0,0.0,0.0,1.0);
+        glClearColor(0.0,0.0,0.0,0.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

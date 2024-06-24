@@ -109,8 +109,15 @@ void World::PreRender(float width, float height) {
 }
 
 void World::Process() {
+    auto canvas = Skia::GetCanvas();
     ImGuiIO &io = ImGui::GetIO();
     ImVec2 pos = ImGui::GetMousePos();
+
+    canvas->save();
+    canvas->translate(io.DisplaySize.x - (state.offset_x * state.scale),
+                      io.DisplaySize.y * Interface::GetDPIScaling() -
+                      (float) Terrain::F_TERRAIN_HEIGHT * state.scale);
+    canvas->scale(state.scale, -state.scale);
 
     // Update
     std::vector<double> &heights = terrain->GetHeights();
@@ -154,6 +161,10 @@ void World::Process() {
         float x = (pos.x - io.DisplaySize.x / 2) * Interface::GetDPIScaling() / state.scale + state.offset_x;
         float y = (io.DisplaySize.y - pos.y) * Interface::GetDPIScaling() / state.scale + state.offset_y;
         Emplacement::AddEmplacement(x, y, true, Player::FRIENDLY);
+    } else if (add_mode) {
+        float x = (pos.x - io.DisplaySize.x / 2) * Interface::GetDPIScaling() / state.scale + state.offset_x;
+        float y = (io.DisplaySize.y - pos.y) * Interface::GetDPIScaling() / state.scale + state.offset_y;
+        Emplacement::AddEmplacement(x, y, false, Player::FRIENDLY);
     }
 
     // Move?
@@ -223,6 +234,7 @@ void World::Process() {
         r_velocity = 0;
         l_velocity = 0;
     }
+    canvas->restore();
 }
 
 

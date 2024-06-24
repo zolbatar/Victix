@@ -1,4 +1,5 @@
 #include <chrono>
+#include <include/effects/SkImageFilters.h>
 #include "Emplacement.h"
 #include "../model/World.h"
 #include "Generic.h"
@@ -6,7 +7,7 @@
 static std::vector<float> previous;
 extern std::unique_ptr<World> game_world;
 extern std::unique_ptr<Terrain> terrain;
-float Emplacement::size = 15.0;
+float Emplacement::size = 15.0f;
 
 Emplacement::Emplacement(float x, float y, Player player) : Object(x, y, player) {
     b2Vec2 vertices[4];
@@ -25,6 +26,10 @@ Emplacement::Emplacement(float x, float y, Player player) : Object(x, y, player)
 
 void Emplacement::AddEmplacement(float x, float y, bool final, Player player) {
     auto &heights = terrain->GetHeights();
+
+    // Any previous?
+    if (!previous.empty())
+        Restore();
 
     // Align X
     ImGuiIO &io = ImGui::GetIO();
@@ -78,7 +83,7 @@ void Emplacement::AddEmplacement(float x, float y, bool final, Player player) {
         // Save previous
         previous.reserve(indices);
         for (int i = game_world->idx1; i < game_world->idx2; i++) {
-            previous[i - game_world->idx1] = (float) heights[i];
+            previous.push_back((float) heights[i]);
         }
 
         // Now update
@@ -110,6 +115,7 @@ void Emplacement::Restore() {
     for (int i = game_world->idx1; i < game_world->idx2; i++) {
         heights[i] = previous[i - game_world->idx1];
     }
+    previous.clear();
 }
 
 Type Emplacement::Type() {
@@ -125,46 +131,72 @@ void Emplacement::RenderInternal(float x, float y, float a, Player player, bool 
     canvas->rotate(a);
     canvas->translate(-x, -y);
 
-    // Build path
     SkPath path;
-    path.moveTo(x + size * 0.5, y - size * 0.5);
-    path.lineTo(x + size * 0.3, y + size * 0.5);
-    path.lineTo(x - size * 0.3, y + size * 0.5);
-    path.lineTo(x - size * 0.5, y - size * 0.5);
+    path.moveTo(x + size * 0.25f, y - size * 0.5f);
+    path.lineTo(x + size * 0.2f, y + size * 0.3f);
+    path.lineTo(x, y + size * 0.5f);
+    path.lineTo(x - size * 0.2f, y + size * 0.3f);
+    path.lineTo(x - size * 0.25f, y - size * 0.5f);
     path.close();
     SkPath outline_path;
     outline_path = path;
-    SkPaint paint;
-    paint.setStyle(SkPaint::Style::kFill_Style);
-    paint.setAntiAlias(true);
+
+    // Fill
     if (!outline) {
-        if (player == Player::FRIENDLY)
-            paint.setARGB(255, 0, 0, 64);
-        else
-            paint.setARGB(255, 64, 0, 0);
+
+        // Fill
+        SkPaint paint;
+        paint.setStyle(SkPaint::Style::kFill_Style);
+        paint.setAntiAlias(true);
+        paint.setARGB(255, 0, 0, 0);
+        canvas->drawPath(path, paint);
+
+        // Glow
+        path.reset();
+        path.addCircle(x, y + size * 0.95f, size * 0.25f);
+        if (player == Player::FRIENDLY) {
+            SkColor colors[] = {
+                    SkColorSetRGB(125, 249, 255), // Electric Blue
+                    SkColorSetRGB(0, 0, 255)      // Pure Blue
+            };
+            SkScalar positions[] = {0.0f, 1.0f};
+            sk_sp<SkShader> shader = SkGradientShader::MakeRadial(SkPoint::Make(x, y + size * 0.95f),
+                                                                  size * 0.25f,
+                                                                  colors,
+                                                                  positions, 2,
+                                                                  SkTileMode::kClamp);
+            paint.setShader(shader);
+            sk_sp<SkImageFilter> dropShadow = SkImageFilters::DropShadow(
+                    0.0f, 0.0f,  // dx, dy
+                    2.5f, 2.5f,    // sigmaX, sigmaY
+                    SkColorSetARGB(255, 255, 255, 255), // shadow color
+                    nullptr        // input (nullptr means apply to the paint directly)
+            );
+            paint.setImageFilter(dropShadow);
+        } else
+            paint.setARGB(255, 128, 0, 0);
         canvas->drawPath(path, paint);
     }
 
     // Outline
+    SkPaint paint;
     if (player == Player::FRIENDLY)
-        paint.setARGB(valid ? 255 : 128, 0, 0, 255);
+        paint.setARGB(valid ? 255 : 48, 135, 206, 250);
     else
-        paint.setARGB(valid ? 255 : 128, 255, 0, 0);
-/*    if (outline) {
-        // Define the dash pattern (dash length, gap length)
-        double dashes[] = {1.0, 3.0};
-        int num_dashes = sizeof(dashes) / sizeof(dashes[0]);
-        auto time = std::chrono::system_clock::now(); // Get the current time
-        auto since_epoch = time.time_since_epoch();   // Get the duration since epoch
-        auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(since_epoch);
-        double offset = millis.count() / 100.0; // Start point of the dash pattern
-
-        // Set the dash pattern
-        cairo_set_dash(cr, dashes, num_dashes, offset);
-        cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
-    }*/
+        paint.setARGB(valid ? 255 : 48, 255, 0, 255);
+    paint.setAntiAlias(true);
     paint.setStyle(SkPaint::Style::kStroke_Style);
-    paint.setStrokeWidth(1.5);
+    paint.setStrokeCap(SkPaint::Cap::kRound_Cap);
+    paint.setStrokeMiter(0.5f);
+    paint.setStrokeJoin(SkPaint::Join::kRound_Join);
+    paint.setStrokeWidth(1.0f);
+    if (outline) {
+        const SkScalar intervals[] = {2.0f, 3.0f};
+        int count = sizeof(intervals) / sizeof(intervals[0]);
+        SkScalar phase = (Skia::GetFrame() % 100) * 0.1f; // Adjust 0.5f for speed of walking
+        sk_sp<SkPathEffect> dashEffect = SkDashPathEffect::Make(intervals, count, phase);
+        paint.setPathEffect(dashEffect);
+    }
     canvas->drawPath(outline_path, paint);
     canvas->restore();
 }

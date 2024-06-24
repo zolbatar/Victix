@@ -9,6 +9,7 @@ extern int window_width;
 extern int window_height;
 extern int width, height;
 extern std::unique_ptr<Terrain> terrain;
+long Skia::frame = 0;
 
 std::random_device rd;  // Random device to seed the generator
 std::mt19937 gen(rd()); // Standard Mersenne Twister engine seeded with rd()
@@ -86,6 +87,7 @@ void Skia::MakeFrame(WorldPosition &state) {
 }
 
 void Skia::EndFrame() {
+    frame++;
 
     // Flush Skia commands
     context->flushAndSubmit();

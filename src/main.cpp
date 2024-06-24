@@ -58,6 +58,11 @@ int main() {
     //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
 #endif
 
+    // Set window hints for an undecorated window
+    /*glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+    glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);  // Make the framebuffer transparent
+     */
+
     // Create window with graphics context
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     window = glfwCreateWindow(window_width, window_height, "Victix", nullptr, nullptr);

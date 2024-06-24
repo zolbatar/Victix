@@ -11,6 +11,8 @@
 #include "include/core/SkImageInfo.h"
 #include "include/core/SkStream.h"
 #include "include/core/SkSurface.h"
+#include "include/effects/SkDashPathEffect.h"
+#include "include/core/SkPathEffect.h"
 #include "include/effects/SkBlurMaskFilter.h"
 #include "include/effects/SkGradientShader.h"
 #include "include/encode/SkPngEncoder.h"
@@ -37,9 +39,12 @@ private:
     GLuint textureID;
     GrDirectContext *context;
     static SkSurface *surface;
+    static long frame;
 
 public:
     Skia();
+
+    static long GetFrame() { return frame; }
 
     static void StartFrame();
 
