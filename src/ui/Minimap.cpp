@@ -12,20 +12,16 @@ void RenderMinimap(WorldPosition &state) {
     auto &heights = terrain->GetHeights();
     auto canvas = Skia::GetCanvas();
 
-    const float divider = 2;
-    const float width = Terrain::F_TERRAIN_WIDTH / divider;
-    const float height = Terrain::F_TERRAIN_HEIGHT * 4 / divider;
-
-    // 752
-    // 1604
-
     // Background
+    const float divider = 2;
+    float divisor = 1.0f / divider;
     canvas->save();
-    canvas->translate(io.DisplaySize.x * Interface::GetDPIScaling() - 32 - Terrain::F_TERRAIN_WIDTH / 2,
-                      24);
-    canvas->scale(1.0f / divider, 1.0f / divider);
-    top_left = Skia::Reverse(0, 0);
-    bottom_right = Skia::Reverse(width, height);
+    canvas->scale(divisor, divisor);
+    canvas->translate(io.DisplaySize.x * Interface::GetDPIScaling() - Terrain::F_TERRAIN_WIDTH / 2, 32);
+    top_left.x = (io.DisplaySize.x / 2) - Terrain::F_TERRAIN_WIDTH / 2 / divider / Interface::GetDPIScaling();
+    bottom_right.x = (io.DisplaySize.x / 2) + Terrain::F_TERRAIN_WIDTH / 2 / divider / Interface::GetDPIScaling();
+    top_left.y = 12;
+    bottom_right.y = 74;
 
     // backgrounds
     auto rect = SkRect::MakeXYWH(0, 0, Terrain::F_TERRAIN_WIDTH, Terrain::F_TERRAIN_HEIGHT * 4);

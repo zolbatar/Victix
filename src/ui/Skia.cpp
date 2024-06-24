@@ -117,7 +117,7 @@ ImVec2 Skia::Reverse(float x, float y) {
     SkPoint localPoint = SkPoint::Make(x, y);
 
     // Get the current total matrix
-    SkMatrix currentMatrix = surface->getCanvas()->getTotalMatrix();
+    SkMatrix currentMatrix = surface->getCanvas()->getLocalToDeviceAs3x3();
 
     // Calculate the inverse of the current matrix
     SkMatrix inverseMatrix;
@@ -129,5 +129,5 @@ ImVec2 Skia::Reverse(float x, float y) {
     // Map the local point back to screen coordinates
     SkPoint screenPoint;
     inverseMatrix.mapPoints(&screenPoint, &localPoint, 1);
-    return {screenPoint.x(), screenPoint.y()};
+    return {screenPoint.x(), -screenPoint.y()};
 }
