@@ -13,7 +13,11 @@ public:
 
     bool Update() override;
 
-    enum Type Type() override;
+    void Activate() override;
+
+    bool ReadyToActivate() override;
+
+    enum Type GetType() override;
 
     static void AddEmplacement(float x, float y, bool final, Player player);
 

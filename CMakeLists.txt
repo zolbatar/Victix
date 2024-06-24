@@ -37,8 +37,8 @@ add_executable(${PROJECT_NAME}
         src/model/WorldPosition.h
         src/objects/Object.cpp
         src/objects/Object.h
-        src/objects/Generic.cpp
-        src/objects/Generic.h
+        src/objects/Bomb.cpp
+        src/objects/Bomb.h
         src/objects/Emplacement.cpp
         src/objects/Emplacement.h
         src/ui/Minimap.cpp

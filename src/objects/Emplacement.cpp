@@ -2,7 +2,7 @@
 #include <include/effects/SkImageFilters.h>
 #include "Emplacement.h"
 #include "../model/World.h"
-#include "Generic.h"
+#include "Bomb.h"
 
 static std::vector<float> previous;
 extern std::unique_ptr <World> game_world;
@@ -56,7 +56,7 @@ void Emplacement::AddEmplacement(float x, float y, bool final, Player player) {
 
     // Do we have an existing one, and do we have one close enough?
     for (auto &obj: game_world->GetObjects()) {
-        if (obj->Type() == Type::EMPLACEMENT) {
+        if (obj->GetType() == Type::EMPLACEMENT) {
             float x_diff = abs(x - obj->GetBody()->GetPosition().x);
             if (x_diff < 50) {
 
@@ -118,7 +118,7 @@ void Emplacement::Restore() {
     previous.clear();
 }
 
-Type Emplacement::Type() {
+Type Emplacement::GetType() {
     return Type::EMPLACEMENT;
 }
 
@@ -197,6 +197,16 @@ void Emplacement::RenderInternal(float x, float y, float a, Player player, bool 
     }
     canvas->drawPath(outline_path, paint);
     canvas->restore();
+}
+
+void Emplacement::Activate() {
+    float x = body->GetPosition().x;
+    float y = body->GetPosition().y;
+    game_world->GetObjects().emplace_back(std::make_unique<Bomb>(x, y + size, player));
+}
+
+bool Emplacement::ReadyToActivate() {
+    return true;
 }
 
 

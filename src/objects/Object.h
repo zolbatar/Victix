@@ -19,13 +19,17 @@ public:
 
     virtual ~Object();
 
-    virtual Type Type() = 0;
+    virtual Type GetType() = 0;
 
     Player GetPlayer() { return player; };
 
     virtual void Render() = 0;
 
     virtual bool Update() = 0;
+
+    virtual bool ReadyToActivate() = 0;
+
+    virtual void Activate() = 0;
 
     b2Body *GetBody() { return body; }
 

@@ -1,5 +1,6 @@
 #pragma once
 
 enum class Type {
-    EMPLACEMENT
+    EMPLACEMENT,
+    BOMB
 };

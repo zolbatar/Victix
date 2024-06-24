@@ -1,7 +1,7 @@
 #include <random>
 #include "imgui.h"
 #include "World.h"
-#include "../objects/Generic.h"
+#include "../objects/Bomb.h"
 #include "../objects/Emplacement.h"
 #include "../ui/Minimap.h"
 #include "../ui/Interface.h"
@@ -75,7 +75,7 @@ void World::PreRender(float width, float height) {
     canvas->restore();
 
     // Debug draw
-    if (false) {
+    if (true) {
         canvas->save();
         canvas->translate(io.DisplaySize.x - (state.offset_x * state.scale),
                           io.DisplaySize.y * Interface::GetDPIScaling() -
@@ -120,7 +120,6 @@ void World::Process() {
     canvas->scale(state.scale, -state.scale);
 
     // Update
-    std::vector<double> &heights = terrain->GetHeights();
     objects.remove_if([](std::unique_ptr<Object> &obj) { return obj->Update(); });
     world->Step(timeStep, velocityIterations, positionIterations);
 
@@ -165,6 +164,13 @@ void World::Process() {
         float x = (pos.x - io.DisplaySize.x / 2) * Interface::GetDPIScaling() / state.scale + state.offset_x;
         float y = (io.DisplaySize.y - pos.y) * Interface::GetDPIScaling() / state.scale + state.offset_y;
         Emplacement::AddEmplacement(x, y, false, Player::FRIENDLY);
+    } else if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+        // Fire?
+        for (auto &obj: this->GetObjects()) {
+            if (obj->GetType() == Type::EMPLACEMENT && obj->ReadyToActivate()) {
+                obj->Activate();
+            }
+        }
     }
 
     // Move?
