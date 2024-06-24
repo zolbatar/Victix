@@ -4,6 +4,7 @@
 
 class Bomb : public Object {
 protected:
+    static float size;
 
     bool Update() override;
 

@@ -30,7 +30,7 @@ World::World(float scale) {
     state.offset_y = 0.0f;
 
     // Box2D
-    b2Vec2 gravity(0.0f, -10.0f);
+    b2Vec2 gravity(0.0f, -25.0f);
     world = std::make_unique<b2World>(gravity);
     terrain = std::make_unique<Terrain>();
 
@@ -75,7 +75,7 @@ void World::PreRender(float width, float height) {
     canvas->restore();
 
     // Debug draw
-    if (true) {
+    if (false) {
         canvas->save();
         canvas->translate(io.DisplaySize.x - (state.offset_x * state.scale),
                           io.DisplaySize.y * Interface::GetDPIScaling() -
