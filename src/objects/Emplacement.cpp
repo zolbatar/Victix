@@ -5,15 +5,15 @@
 #include "Generic.h"
 
 static std::vector<float> previous;
-extern std::unique_ptr<World> game_world;
-extern std::unique_ptr<Terrain> terrain;
+extern std::unique_ptr <World> game_world;
+extern std::unique_ptr <Terrain> terrain;
 float Emplacement::size = 15.0f;
 
 Emplacement::Emplacement(float x, float y, Player player) : Object(x, y, player) {
     b2Vec2 vertices[4];
     vertices[0].Set(size * 0.5f, -size * 0.5f);
-    vertices[1].Set(size * 0.3f, size * 0.5f);
-    vertices[2].Set(-size * 0.3f, size * 0.5f);
+    vertices[1].Set(size * 0.2f, size * 1.2f);
+    vertices[2].Set(-size * 0.2f, size * 1.2f);
     vertices[3].Set(-size * 0.5f, -size * 0.5f);
     b2PolygonShape dynamicBox;
     dynamicBox.Set(vertices, 4);
@@ -155,26 +155,24 @@ void Emplacement::RenderInternal(float x, float y, float a, Player player, bool 
         path.reset();
         path.addCircle(x, y + size * 0.95f, size * 0.25f);
         if (player == Player::FRIENDLY) {
-            SkColor colors[] = {
-                    SkColorSetRGB(125, 249, 255), // Electric Blue
-                    SkColorSetRGB(0, 0, 255)      // Pure Blue
-            };
-            SkScalar positions[] = {0.0f, 1.0f};
-            sk_sp<SkShader> shader = SkGradientShader::MakeRadial(SkPoint::Make(x, y + size * 0.95f),
-                                                                  size * 0.25f,
-                                                                  colors,
-                                                                  positions, 2,
-                                                                  SkTileMode::kClamp);
-            paint.setShader(shader);
-            sk_sp<SkImageFilter> dropShadow = SkImageFilters::DropShadow(
+            paint.setARGB(255, 125, 249, 255);
+            sk_sp <SkImageFilter> dropShadow = SkImageFilters::DropShadow(
                     0.0f, 0.0f,  // dx, dy
-                    2.5f, 2.5f,    // sigmaX, sigmaY
+                    5.0f, 5.0f,    // sigmaX, sigmaY
                     SkColorSetARGB(255, 255, 255, 255), // shadow color
                     nullptr        // input (nullptr means apply to the paint directly)
             );
             paint.setImageFilter(dropShadow);
-        } else
-            paint.setARGB(255, 128, 0, 0);
+        } else {
+            paint.setARGB(255, 227, 66, 52);
+            sk_sp <SkImageFilter> dropShadow = SkImageFilters::DropShadow(
+                    0.0f, 0.0f,  // dx, dy
+                    5.0f, 5.0f,    // sigmaX, sigmaY
+                    SkColorSetARGB(255, 255, 255, 255), // shadow color
+                    nullptr        // input (nullptr means apply to the paint directly)
+            );
+            paint.setImageFilter(dropShadow);
+        }
         canvas->drawPath(path, paint);
     }
 
@@ -194,7 +192,7 @@ void Emplacement::RenderInternal(float x, float y, float a, Player player, bool 
         const SkScalar intervals[] = {2.0f, 3.0f};
         int count = sizeof(intervals) / sizeof(intervals[0]);
         SkScalar phase = (Skia::GetFrame() % 100) * 0.1f; // Adjust 0.5f for speed of walking
-        sk_sp<SkPathEffect> dashEffect = SkDashPathEffect::Make(intervals, count, phase);
+        sk_sp <SkPathEffect> dashEffect = SkDashPathEffect::Make(intervals, count, phase);
         paint.setPathEffect(dashEffect);
     }
     canvas->drawPath(outline_path, paint);
