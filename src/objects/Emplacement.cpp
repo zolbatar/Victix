@@ -117,7 +117,9 @@ Type Emplacement::Type() {
 }
 
 void Emplacement::RenderInternal(float x, float y, float a, Player player, bool outline, bool valid) {
-/*    cairo_save(cr);
+    auto canvas = Skia::GetCanvas();
+    canvas->save();
+
     cairo_translate(cr, x, y);
     cairo_rotate(cr, a);
     cairo_translate(cr, -x, -y);
@@ -156,7 +158,7 @@ void Emplacement::RenderInternal(float x, float y, float a, Player player, bool 
     }
     cairo_set_line_width(cr, 1.5);
     cairo_stroke(cr);
-    cairo_restore(cr);*/
+    canvas->restore();
 }
 
 
