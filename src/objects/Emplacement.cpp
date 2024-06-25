@@ -19,7 +19,7 @@ Emplacement::Emplacement(float x, float y, Player player) : Object(x, y, player)
     dynamicBox.Set(vertices, 4);
     b2FixtureDef fixtureDef;
     fixtureDef.shape = &dynamicBox;
-    fixtureDef.density = 1.0f;
+    fixtureDef.density = 100.0f;
     fixtureDef.friction = 0.3f;
     body->CreateFixture(&fixtureDef);
     this->cost = WorldPosition::cost;
@@ -73,7 +73,7 @@ void Emplacement::AddEmplacement(float x, float y, bool final, Player player) {
                 for (int i = game_world->idx1; i < game_world->idx2; i++) {
                     previous[i - game_world->idx1] = (float) heights[i];
                 }
-                Emplacement::RenderInternal(x, y, 0, player, true, false);
+                Emplacement::RenderInternal(nullptr, x, y, 0, player, true, false);
                 return;
             }
         }
@@ -85,7 +85,7 @@ void Emplacement::AddEmplacement(float x, float y, bool final, Player player) {
         for (int i = game_world->idx1; i < game_world->idx2; i++) {
             previous[i - game_world->idx1] = (float) heights[i];
         }
-        Emplacement::RenderInternal(x, y, 0, player, true, false);
+        Emplacement::RenderInternal(nullptr, x, y, 0, player, true, false);
         return;
     }
 
@@ -110,7 +110,7 @@ void Emplacement::AddEmplacement(float x, float y, bool final, Player player) {
         for (int i = game_world->idx1; i < game_world->idx2; i++) {
             previous[i - game_world->idx1] = (float) heights[i];
         }
-        Emplacement::RenderInternal(x, y, 0, player, true, false);
+        Emplacement::RenderInternal(nullptr, x, y, 0, player, true, false);
         return;
     }
 
@@ -128,11 +128,14 @@ void Emplacement::AddEmplacement(float x, float y, bool final, Player player) {
         previous.clear();
         WorldPosition::cost = -1;
     } else {
-        Emplacement::RenderInternal(x, y, 0, player, true, true);
+        Emplacement::RenderInternal(nullptr, x, y, 0, player, true, true);
     }
 }
 
 bool Emplacement::Update() {
+    charge += 0.005f;
+    if (charge > 1.0f)
+        charge = 1.0f;
     return false;
 }
 
@@ -140,7 +143,7 @@ void Emplacement::Render() {
     float x = body->GetPosition().x;
     float y = body->GetPosition().y;
     float a = body->GetAngle();
-    RenderInternal(x, y, a, player, false, true);
+    RenderInternal(this, x, y, a, player, false, true);
 }
 
 void Emplacement::Clear() {
@@ -161,7 +164,8 @@ Type Emplacement::GetType() {
     return Type::EMPLACEMENT;
 }
 
-void Emplacement::RenderInternal(float x, float y, float a, Player player, bool outline, bool valid) {
+void Emplacement::RenderInternal(Emplacement *emplacement, float x, float y, float a, Player player, bool outline,
+                                 bool valid) {
     auto canvas = Skia::GetCanvas();
     canvas->save();
 
@@ -194,23 +198,27 @@ void Emplacement::RenderInternal(float x, float y, float a, Player player, bool 
         path.reset();
         path.addCircle(x, y + size * 0.95f, size * 0.25f);
         if (player == Player::FRIENDLY) {
-            paint.setARGB(255, 125, 249, 255);
-            sk_sp<SkImageFilter> dropShadow = SkImageFilters::DropShadow(
-                    0.0f, 0.0f,  // dx, dy
-                    5.0f, 5.0f,    // sigmaX, sigmaY
-                    SkColorSetARGB(255, 255, 255, 255), // shadow color
-                    nullptr        // input (nullptr means apply to the paint directly)
-            );
-            paint.setImageFilter(dropShadow);
+            paint.setARGB(emplacement == nullptr ? 255 : 255 * emplacement->charge, 125, 249, 255);
+            if (emplacement != nullptr && emplacement->charge == 1.0f) {
+                sk_sp<SkImageFilter> dropShadow = SkImageFilters::DropShadow(
+                        0.0f, 0.0f,  // dx, dy
+                        5.0f, 5.0f,    // sigmaX, sigmaY
+                        SkColorSetARGB(255, 255, 255, 255), // shadow color
+                        nullptr        // input (nullptr means apply to the paint directly)
+                );
+                paint.setImageFilter(dropShadow);
+            }
         } else {
-            paint.setARGB(255, 227, 66, 52);
-            sk_sp<SkImageFilter> dropShadow = SkImageFilters::DropShadow(
-                    0.0f, 0.0f,  // dx, dy
-                    5.0f, 5.0f,    // sigmaX, sigmaY
-                    SkColorSetARGB(255, 255, 255, 255), // shadow color
-                    nullptr        // input (nullptr means apply to the paint directly)
-            );
-            paint.setImageFilter(dropShadow);
+            paint.setARGB(emplacement == nullptr ? 255 : 255 * emplacement->charge, 227, 66, 52);
+            if (emplacement != nullptr && emplacement->charge == 1.0f) {
+                sk_sp<SkImageFilter> dropShadow = SkImageFilters::DropShadow(
+                        0.0f, 0.0f,  // dx, dy
+                        5.0f, 5.0f,    // sigmaX, sigmaY
+                        SkColorSetARGB(255, 255, 255, 255), // shadow color
+                        nullptr        // input (nullptr means apply to the paint directly)
+                );
+                paint.setImageFilter(dropShadow);
+            }
         }
         canvas->drawPath(path, paint);
     }
@@ -249,7 +257,7 @@ void Emplacement::Activate() {
 }
 
 bool Emplacement::ReadyToActivate() {
-    return true;
+    return this->charge == 1.0f;
 }
 
 

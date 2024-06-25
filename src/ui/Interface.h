@@ -2,6 +2,8 @@
 
 #include <OpenGL/gl.h>
 #include <string>
+#include <include/core/SkPoint.h>
+#include <include/core/SkPaint.h>
 #include "imgui.h"
 
 class Interface {
@@ -43,4 +45,5 @@ public:
 
     static void RenderQuad();
 
+    static void DrawArrowLine(SkPoint start, SkPoint end, float arrowSize, SkPaint paint);
 };

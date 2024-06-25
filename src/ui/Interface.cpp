@@ -4,10 +4,12 @@
 #include "Interface.h"
 #include "imgui.h"
 #include "Shaders.h"
+#include "Skia.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 
 #include <stb_image.h>
+#include <include/core/SkCanvas.h>
 
 extern char *glsl_version_init;
 float Interface::dpi = 72.0f;
@@ -172,4 +174,39 @@ void Interface::RenderQuad() {
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glDeleteVertexArrays(1, &quadVAO);
     glDeleteBuffers(1, &quadVBO);
+}
+
+void Interface::DrawArrowLine(SkPoint start, SkPoint end, float arrowSize, SkPaint paint) {
+    SkCanvas *canvas = Skia::GetCanvas();
+
+    // Draw the main line
+    canvas->drawLine(start, end, paint);
+
+    // Calculate the direction of the line
+    float dx = end.x() - start.x();
+    float dy = end.y() - start.y();
+    float length = sqrt(dx * dx + dy * dy);
+    float unitDx = dx / length;
+    float unitDy = dy / length;
+
+    // Arrowhead angle (45 degrees)
+    float arrowAngle = 0.785398; // 45 degrees in radians
+
+    // Calculate the points for the arrowhead
+    SkPoint arrowPoint1 = {
+            end.x() - arrowSize * (unitDx * cos(arrowAngle) - unitDy * sin(arrowAngle)),
+            end.y() - arrowSize * (unitDy * cos(arrowAngle) + unitDx * sin(arrowAngle))
+    };
+    SkPoint arrowPoint2 = {
+            end.x() - arrowSize * (unitDx * cos(-arrowAngle) - unitDy * sin(-arrowAngle)),
+            end.y() - arrowSize * (unitDy * cos(-arrowAngle) + unitDx * sin(-arrowAngle))
+    };
+
+    // Draw the arrowhead
+    SkPath arrowhead;
+    arrowhead.moveTo(end);
+    arrowhead.lineTo(arrowPoint1);
+    arrowhead.lineTo(arrowPoint2);
+    arrowhead.close();
+    canvas->drawPath(arrowhead, paint);
 }

@@ -8,10 +8,13 @@
 #include "SkiaDebugDraw.h"
 #include "../objects/Object.h"
 
-enum DragType {
+enum class Mode {
     NONE,
     NORMAL,
-    MINIMAP
+    MINIMAP,
+    ADD,
+    BOMBARD,
+    FLAK
 };
 
 class World {
@@ -19,7 +22,7 @@ private:
     WorldPosition state;
     ImVec2 last_drag;
     std::unique_ptr<SkiaDebugDraw> debugDraw;
-    DragType dragging = DragType::NONE;
+    Mode mode = Mode::NONE;
     float left_edge, right_edge;
 
     // Smooth scroll animation
@@ -36,7 +39,6 @@ private:
     std::list<std::unique_ptr<Object>> objects;
 
 public:
-    bool add_mode = false;
     int idx, idx1, idx2;
 
     World(float scale);

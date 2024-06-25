@@ -4,11 +4,14 @@
 
 class Emplacement : public Object {
 protected:
-    static float size;
 
-    static void RenderInternal(float x, float y, float a, Player player, bool outline, bool valid);
+    static void
+    RenderInternal(Emplacement *emplacement, float x, float y, float a, Player player, bool outline, bool valid);
+
+    float charge = 0.0;
 
 public:
+    static float size;
     int cost;
 
     Emplacement(float x, float y, Player player);

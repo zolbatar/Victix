@@ -17,7 +17,7 @@ Bomb::Bomb(float x, float y, Player player) : Object(x, y, player) {
     fixtureDef.density = 1.0f;
     fixtureDef.friction = 0.3f;
     body->CreateFixture(&fixtureDef);
-    b2Vec2 initialVelocity(250.0f, 170.0f);
+    b2Vec2 initialVelocity(WorldPosition::shoot_delta_x, WorldPosition::shoot_delta_y);
     body->SetLinearVelocity(initialVelocity);
 }
 

@@ -14,6 +14,8 @@ extern ImFont *font_bold;
 
 int WorldPosition::credits = 5000;
 int WorldPosition::cost = 0;
+float WorldPosition::shoot_delta_x;
+float WorldPosition::shoot_delta_y;
 
 // FPS
 auto lastTime = std::chrono::high_resolution_clock::now();
@@ -62,7 +64,7 @@ void World::Build(int number) {
         float x = idx - Terrain::F_TERRAIN_WIDTH / 2;
         float y = (float) heights[idx] + 15;
         y += Terrain::TERRAIN_HEIGHT;
-        Emplacement::AddEmplacement(x,y , true, Player::ENEMY);
+        Emplacement::AddEmplacement(x, y, true, Player::ENEMY);
         idx -= 50;
     }
 
@@ -90,8 +92,29 @@ void World::PreRender(float width, float height) {
                       io.DisplaySize.y * Interface::GetDPIScaling() -
                       (float) Terrain::F_TERRAIN_HEIGHT * state.scale);
     canvas->scale(state.scale, -state.scale);
+    SkPaint paint;
+    paint.setStyle(SkPaint::Style::kStroke_Style);
+    paint.setAntiAlias(true);
+    paint.setStrokeWidth(2.5f);
+    paint.setARGB(255, 255, 255, 0);
     for (auto &obj: objects) {
         obj->Render();
+        if (obj->ReadyToActivate() && mode == Mode::BOMBARD) {
+            auto pos = obj->GetBody()->GetPosition();
+            SkPath path;
+            path.moveTo(pos.x, pos.y + Emplacement::size);
+            path.lineTo(pos.x + WorldPosition::shoot_delta_x, pos.y + WorldPosition::shoot_delta_y);
+
+            // Shade it
+            SkColor colors[] = {SK_ColorTRANSPARENT, SK_ColorYELLOW};
+            SkPoint points[] = {SkPoint::Make(pos.x, pos.y + Emplacement::size),
+                                SkPoint::Make(pos.x + WorldPosition::shoot_delta_x, pos.y + WorldPosition::shoot_delta_y)};
+            sk_sp<SkShader> shader = SkGradientShader::MakeLinear(points, colors, nullptr, 2, SkTileMode::kClamp);
+            paint.setShader(shader);
+
+            // Draw as arrow
+            Interface::DrawArrowLine(points[0], points[1], 5.0f, paint);
+        }
     }
     canvas->restore();
 
@@ -122,6 +145,27 @@ void World::PreRender(float width, float height) {
     ImGui::Text("%d", state.credits);
     ImGui::PopFont();
 
+    // Mode
+    ImGui::TextUnformatted("Mode: ");
+    ImGui::PushFont(font_bold);
+    ImGui::SameLine();
+    ImGui::SetCursorScreenPos(ImVec2(150.0f, ImGui::GetCursorScreenPos().y));
+    switch (mode) {
+        case Mode::ADD:
+            ImGui::TextUnformatted("Adding Emplacement");
+            break;
+        case Mode::BOMBARD:
+            ImGui::TextUnformatted("Bombard");
+            break;
+        case Mode::FLAK:
+            ImGui::TextUnformatted("Flak");
+            break;
+        default:
+            ImGui::TextUnformatted("None");
+            break;
+    }
+    ImGui::PopFont();
+
     // Cost (if appropriate)
     if (WorldPosition::cost >= 0) {
         ImGui::TextUnformatted("Cost: ");
@@ -146,6 +190,7 @@ void World::Process() {
     auto canvas = Skia::GetCanvas();
     ImGuiIO &io = ImGui::GetIO();
     ImVec2 pos = ImGui::GetMousePos();
+    float drag_scale = 1.0f / state.scale * Interface::GetDPIScaling();
 
     canvas->save();
     canvas->translate(io.DisplaySize.x - (state.offset_x * state.scale),
@@ -160,18 +205,17 @@ void World::Process() {
     // Dragging
     if (ImGui::IsMouseDragging(ImGuiMouseButton_Right)) {
         ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
-        if (!dragging) {
+        if (mode == Mode::NONE) {
             if (MinimapCheckDrag(pos, state)) {
-                dragging = DragType::MINIMAP;
+                mode = Mode::MINIMAP;
             } else {
-                dragging = DragType::NORMAL;
+                mode = Mode::NORMAL;
                 last_drag = drag_delta;
             }
         } else {
-            if (dragging == DragType::MINIMAP) {
+            if (mode == Mode::MINIMAP) {
                 MinimapCheckClick(pos, state);
             } else {
-                float drag_scale = 1.0f / state.scale * Interface::GetDPIScaling();
                 state.offset_x -= (drag_delta.x - last_drag.x) * drag_scale;
                 state.offset_y += (drag_delta.y - last_drag.y) * drag_scale;
                 l_velocity = 0;
@@ -179,32 +223,57 @@ void World::Process() {
                 last_drag = drag_delta;
             }
         }
-    } else {
-        dragging = DragType::NONE;
+    } else if (mode == Mode::MINIMAP || mode == Mode::NORMAL) {
+        mode = Mode::NONE;
     }
 
     // Click?
-    if (ImGui::IsKeyPressed(ImGuiKey_Escape, false) && add_mode) {
-        add_mode = false;
+    if (ImGui::IsKeyPressed(ImGuiKey_Escape, false) && mode == Mode::ADD) {
+        mode = Mode::NONE;
         Emplacement::Clear();
-    } else if (ImGui::IsKeyPressed(ImGuiKey_A, false)) {
-        add_mode = true;
-    } else if (add_mode && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && WorldPosition::credits >= WorldPosition::cost) {
-        add_mode = false;
+    } else if (mode == Mode::NONE && ImGui::IsKeyPressed(ImGuiKey_A, false)) {
+        mode = Mode::ADD;
+    } else if (mode == Mode::ADD && ImGui::IsMouseClicked(ImGuiMouseButton_Left) &&
+               WorldPosition::credits >= WorldPosition::cost) {
+        mode = Mode::NONE;
         float x = (pos.x - io.DisplaySize.x / 2) * Interface::GetDPIScaling() / state.scale + state.offset_x;
         float y = (io.DisplaySize.y - pos.y) * Interface::GetDPIScaling() / state.scale + state.offset_y;
         Emplacement::AddEmplacement(x, y, true, Player::FRIENDLY);
-    } else if (add_mode) {
+    } else if (mode == Mode::ADD) {
         float x = (pos.x - io.DisplaySize.x / 2) * Interface::GetDPIScaling() / state.scale + state.offset_x;
         float y = (io.DisplaySize.y - pos.y) * Interface::GetDPIScaling() / state.scale + state.offset_y;
         Emplacement::AddEmplacement(x, y, false, Player::FRIENDLY);
-    } else if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+    }
+
+    // Shoot?
+    if (mode == Mode::NONE && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+        ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
+        mode = Mode::BOMBARD;
+        last_drag = drag_delta;
+        WorldPosition::shoot_delta_x = 0;
+        WorldPosition::shoot_delta_y = 0;
+    } else if (mode == Mode::BOMBARD && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+        ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
+        WorldPosition::shoot_delta_x += (drag_delta.x - last_drag.x) * drag_scale;
+        WorldPosition::shoot_delta_y -= (drag_delta.y - last_drag.y) * drag_scale;
+        last_drag = drag_delta;
+
+        // Keep sensible
+        if (WorldPosition::shoot_delta_x < 25) WorldPosition::shoot_delta_x = 25;
+        if (WorldPosition::shoot_delta_x > 200) WorldPosition::shoot_delta_x = 200;
+        if (WorldPosition::shoot_delta_y < -25) WorldPosition::shoot_delta_y = -25;
+        if (WorldPosition::shoot_delta_y > 100) WorldPosition::shoot_delta_y = 100;
+
+    } else if (mode == Mode::BOMBARD && !ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+
         // Fire?
         for (auto &obj: this->GetObjects()) {
             if (obj->GetType() == Type::EMPLACEMENT && obj->ReadyToActivate()) {
                 obj->Activate();
             }
         }
+
+        mode = Mode::NONE;
     }
 
     // Move?
