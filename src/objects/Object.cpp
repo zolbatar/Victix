@@ -24,6 +24,10 @@ bool Object::ImpactUpdate() {
     float x = body->GetPosition().x;
     float y = body->GetPosition().y;
 
+    // Sky?
+    if (y >= Terrain::F_TERRAIN_HEIGHT * 5)
+        return true;
+
     // Impact?
     int xa = x + Terrain::F_TERRAIN_WIDTH / 2.0;
     float diff = fabs(y - (float) terrain->GetHeights()[xa]);

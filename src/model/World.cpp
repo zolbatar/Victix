@@ -30,7 +30,7 @@ World::World(float scale) {
     state.offset_y = 0.0f;
 
     // Box2D
-    b2Vec2 gravity(0.0f, -25.0f);
+    b2Vec2 gravity(0.0f, -10.0f);
     world = std::make_unique<b2World>(gravity);
     terrain = std::make_unique<Terrain>();
 
@@ -41,12 +41,27 @@ World::World(float scale) {
                         b2Draw::e_centerOfMassBit);
 }
 
-void World::Build() {
+void World::Build(int number) {
     std::vector<double> &heights = terrain->GetHeights();
 
-    int idx = 32;
-    float x = idx - Terrain::F_TERRAIN_WIDTH / 2;
-    Emplacement::AddEmplacement(x, (float) heights[idx] + 5, true, Player::FRIENDLY);
+    // Players
+    int idx = 50;
+    for (int i = 0; i < number; i++) {
+        float x = idx - Terrain::F_TERRAIN_WIDTH / 2;
+        float y = (float) heights[idx] + 15;
+        y += Terrain::TERRAIN_HEIGHT;
+        Emplacement::AddEmplacement(x, y, true, Player::FRIENDLY);
+        idx += 50;
+    }
+
+    idx = Terrain::TERRAIN_WIDTH - 50;
+    for (int i = 0; i < number; i++) {
+        float x = idx - Terrain::F_TERRAIN_WIDTH / 2;
+        float y = (float) heights[idx] + 15;
+        y += Terrain::TERRAIN_HEIGHT;
+        Emplacement::AddEmplacement(x,y , true, Player::ENEMY);
+        idx -= 50;
+    }
 }
 
 void World::PreRender(float width, float height) {
@@ -124,8 +139,8 @@ void World::Process() {
     world->Step(timeStep, velocityIterations, positionIterations);
 
     // Dragging
-    if (ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
-        ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
+    if (ImGui::IsMouseDragging(ImGuiMouseButton_Right)) {
+        ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
         if (!dragging) {
             if (MinimapCheckDrag(pos, state)) {
                 dragging = DragType::MINIMAP;

@@ -81,7 +81,7 @@ void App::Go() {
             ImGuiIO &io = ImGui::GetIO();
             float scale = io.DisplaySize.y / (Terrain::F_TERRAIN_HEIGHT * 3);
             game_world = std::make_unique<World>(scale);
-            game_world->Build();
+            game_world->Build(5);
         }
 
         // Full screen window

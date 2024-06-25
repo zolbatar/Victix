@@ -41,7 +41,7 @@ public:
 
     World(float scale);
 
-    void Build();
+    void Build(int number);
 
     void PreRender(float width, float height);
 

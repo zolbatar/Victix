@@ -14,10 +14,10 @@ Bomb::Bomb(float x, float y, Player player) : Object(x, y, player) {
     circleShape.m_radius = size / 2.0f;
     b2FixtureDef fixtureDef;
     fixtureDef.shape = &circleShape;
-    fixtureDef.density = 10.0f;
+    fixtureDef.density = 1.0f;
     fixtureDef.friction = 0.3f;
     body->CreateFixture(&fixtureDef);
-    b2Vec2 initialVelocity(80.0f, 100.0f);
+    b2Vec2 initialVelocity(250.0f, 170.0f);
     body->SetLinearVelocity(initialVelocity);
 }
 
@@ -29,7 +29,7 @@ void Bomb::Render() {
     paint.setStyle(SkPaint::Style::kFill_Style);
     if (player == Player::FRIENDLY) {
         paint.setARGB(255, 125, 249, 255);
-        sk_sp <SkImageFilter> dropShadow = SkImageFilters::DropShadow(
+        sk_sp<SkImageFilter> dropShadow = SkImageFilters::DropShadow(
                 0.0f, 0.0f,  // dx, dy
                 2.0f, 2.0f,    // sigmaX, sigmaY
                 SkColorSetARGB(255, 255, 255, 255), // shadow color
@@ -38,7 +38,7 @@ void Bomb::Render() {
         paint.setImageFilter(dropShadow);
     } else {
         paint.setARGB(255, 227, 66, 52);
-        sk_sp <SkImageFilter> dropShadow = SkImageFilters::DropShadow(
+        sk_sp<SkImageFilter> dropShadow = SkImageFilters::DropShadow(
                 0.0f, 0.0f,  // dx, dy
                 2.0f, 2.0f,    // sigmaX, sigmaY
                 SkColorSetARGB(255, 255, 255, 255), // shadow color
