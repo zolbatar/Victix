@@ -12,6 +12,9 @@ std::unique_ptr<Terrain> terrain;
 extern ImFont *font_regular;
 extern ImFont *font_bold;
 
+int WorldPosition::credits = 5000;
+int WorldPosition::cost = 0;
+
 // FPS
 auto lastTime = std::chrono::high_resolution_clock::now();
 float fps = 0.0f;
@@ -62,6 +65,9 @@ void World::Build(int number) {
         Emplacement::AddEmplacement(x,y , true, Player::ENEMY);
         idx -= 50;
     }
+
+    WorldPosition::credits = 5000;
+    WorldPosition::cost = -1;
 }
 
 void World::PreRender(float width, float height) {
@@ -107,12 +113,25 @@ void World::PreRender(float width, float height) {
     ImGui::BeginChild("Position", ImVec2(640, 360), false,
                       ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration);
     ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 253, 208, 255));
+
+    // Credits
     ImGui::TextUnformatted("Credits: ");
     ImGui::PushFont(font_bold);
     ImGui::SameLine();
     ImGui::SetCursorScreenPos(ImVec2(150.0f, ImGui::GetCursorScreenPos().y));
     ImGui::Text("%d", state.credits);
     ImGui::PopFont();
+
+    // Cost (if appropriate)
+    if (WorldPosition::cost >= 0) {
+        ImGui::TextUnformatted("Cost: ");
+        ImGui::PushFont(font_bold);
+        ImGui::SameLine();
+        ImGui::SetCursorScreenPos(ImVec2(150.0f, ImGui::GetCursorScreenPos().y));
+        ImGui::Text("%d", WorldPosition::cost);
+        ImGui::PopFont();
+    }
+
     ImGui::Text("Position: %.2f %.2f", state.offset_x, state.offset_y);
     ImGui::Text("Scale: %.2f", state.scale);
     ImGui::Text("Bodies: %d/%zu", world->GetBodyCount(), objects.size());
@@ -168,9 +187,9 @@ void World::Process() {
     if (ImGui::IsKeyPressed(ImGuiKey_Escape, false) && add_mode) {
         add_mode = false;
         Emplacement::Clear();
-    } else if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+    } else if (ImGui::IsKeyPressed(ImGuiKey_A, false)) {
         add_mode = true;
-    } else if (add_mode && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+    } else if (add_mode && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && WorldPosition::credits >= WorldPosition::cost) {
         add_mode = false;
         float x = (pos.x - io.DisplaySize.x / 2) * Interface::GetDPIScaling() / state.scale + state.offset_x;
         float y = (io.DisplaySize.y - pos.y) * Interface::GetDPIScaling() / state.scale + state.offset_y;
@@ -189,15 +208,15 @@ void World::Process() {
     }
 
     // Move?
-    if (ImGui::IsKeyPressed(ImGuiKey_A, false)) {
+    if (ImGui::IsKeyPressed(ImGuiKey_C, false)) {
         state.offset_x = right_edge;
         l_velocity = 0;
         r_velocity = 0;
-    } else if (ImGui::IsKeyPressed(ImGuiKey_D, false)) {
+    } else if (ImGui::IsKeyPressed(ImGuiKey_Z, false)) {
         state.offset_x = left_edge;
         l_velocity = 0;
         r_velocity = 0;
-    } else if (ImGui::IsKeyPressed(ImGuiKey_S, false)) {
+    } else if (ImGui::IsKeyPressed(ImGuiKey_X, false)) {
         state.offset_x = 0;
         l_velocity = 0;
         r_velocity = 0;
@@ -240,7 +259,7 @@ void World::Process() {
     state.offset_x -= (float) l_velocity;
 
     // Click
-    if (ImGui::IsMouseClicked(ImGuiMouseButton_Left, false)) {
+    if (ImGui::IsMouseClicked(ImGuiMouseButton_Right, false)) {
         MinimapCheckClick(pos, state);
     }
 

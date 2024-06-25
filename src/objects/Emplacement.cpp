@@ -5,8 +5,8 @@
 #include "Bomb.h"
 
 static std::vector<float> previous;
-extern std::unique_ptr <World> game_world;
-extern std::unique_ptr <Terrain> terrain;
+extern std::unique_ptr<World> game_world;
+extern std::unique_ptr<Terrain> terrain;
 float Emplacement::size = 15.0f;
 
 Emplacement::Emplacement(float x, float y, Player player) : Object(x, y, player) {
@@ -22,10 +22,12 @@ Emplacement::Emplacement(float x, float y, Player player) : Object(x, y, player)
     fixtureDef.density = 1.0f;
     fixtureDef.friction = 0.3f;
     body->CreateFixture(&fixtureDef);
+    this->cost = WorldPosition::cost;
 }
 
 void Emplacement::AddEmplacement(float x, float y, bool final, Player player) {
     auto &heights = terrain->GetHeights();
+    WorldPosition::cost = -1;
 
     // Any previous?
     if (!previous.empty())
@@ -55,42 +57,77 @@ void Emplacement::AddEmplacement(float x, float y, bool final, Player player) {
     int indices = game_world->idx2 - game_world->idx1;
 
     // Do we have an existing one, and do we have one close enough?
+    float nearest = MAXFLOAT;
     for (auto &obj: game_world->GetObjects()) {
         if (obj->GetType() == Type::EMPLACEMENT) {
             float x_diff = abs(x - obj->GetBody()->GetPosition().x);
-            if (x_diff < 50) {
 
-                // Save previous
+            // Nearer?
+            if (obj->GetPlayer() == player && x_diff < nearest) {
+                nearest = x_diff;
+            }
+
+            // Too close?
+            if (x_diff < 50) {
                 previous.reserve(indices);
                 for (int i = game_world->idx1; i < game_world->idx2; i++) {
                     previous[i - game_world->idx1] = (float) heights[i];
                 }
-
                 Emplacement::RenderInternal(x, y, 0, player, true, false);
                 return;
             }
         }
     }
 
-    // Actually place?
-    if (final) {
-        for (int i = game_world->idx1; i < game_world->idx2; i++) {
-            heights[i] = y - size / 2;
-        }
-        game_world->GetObjects().emplace_back(std::make_unique<Emplacement>(x, y + 10, player));
-        terrain->UpdateBox2D();
-    } else {
-        // Save previous
+    // Do we have an existing one close by?
+    if (!final && nearest > 200.0f) {
         previous.reserve(indices);
         for (int i = game_world->idx1; i < game_world->idx2; i++) {
-            previous.push_back((float) heights[i]);
+            previous[i - game_world->idx1] = (float) heights[i];
         }
+        Emplacement::RenderInternal(x, y, 0, player, true, false);
+        return;
+    }
 
-        // Now update
+    // Save previous
+    previous.reserve(indices);
+    for (int i = game_world->idx1; i < game_world->idx2; i++) {
+        previous.push_back((float) heights[i]);
+    }
+
+    // Now update
+    float diff = 0;
+    for (int i = game_world->idx1; i < game_world->idx2; i++) {
+        float new_height = y - size / 2;
+        diff += new_height - heights[i];
+    }
+
+    // And work out cost
+    WorldPosition::cost = abs(diff);
+
+    if (WorldPosition::cost > WorldPosition::credits) {
+        previous.reserve(indices);
         for (int i = game_world->idx1; i < game_world->idx2; i++) {
-            heights[i] = y - size / 2;
+            previous[i - game_world->idx1] = (float) heights[i];
         }
+        Emplacement::RenderInternal(x, y, 0, player, true, false);
+        return;
+    }
 
+    // Do actual update
+    for (int i = game_world->idx1; i < game_world->idx2; i++) {
+        float new_height = y - size / 2;
+        heights[i] = new_height;
+    }
+
+    // Actually place?
+    if (final) {
+        game_world->GetObjects().emplace_back(std::make_unique<Emplacement>(x, y + 10, player));
+        terrain->UpdateBox2D();
+        WorldPosition::credits -= WorldPosition::cost;
+        previous.clear();
+        WorldPosition::cost = -1;
+    } else {
         Emplacement::RenderInternal(x, y, 0, player, true, true);
     }
 }
@@ -107,7 +144,9 @@ void Emplacement::Render() {
 }
 
 void Emplacement::Clear() {
+    Restore();
     previous.clear();
+    WorldPosition::cost = -1;
 }
 
 void Emplacement::Restore() {
@@ -156,7 +195,7 @@ void Emplacement::RenderInternal(float x, float y, float a, Player player, bool 
         path.addCircle(x, y + size * 0.95f, size * 0.25f);
         if (player == Player::FRIENDLY) {
             paint.setARGB(255, 125, 249, 255);
-            sk_sp <SkImageFilter> dropShadow = SkImageFilters::DropShadow(
+            sk_sp<SkImageFilter> dropShadow = SkImageFilters::DropShadow(
                     0.0f, 0.0f,  // dx, dy
                     5.0f, 5.0f,    // sigmaX, sigmaY
                     SkColorSetARGB(255, 255, 255, 255), // shadow color
@@ -165,7 +204,7 @@ void Emplacement::RenderInternal(float x, float y, float a, Player player, bool 
             paint.setImageFilter(dropShadow);
         } else {
             paint.setARGB(255, 227, 66, 52);
-            sk_sp <SkImageFilter> dropShadow = SkImageFilters::DropShadow(
+            sk_sp<SkImageFilter> dropShadow = SkImageFilters::DropShadow(
                     0.0f, 0.0f,  // dx, dy
                     5.0f, 5.0f,    // sigmaX, sigmaY
                     SkColorSetARGB(255, 255, 255, 255), // shadow color
@@ -178,10 +217,14 @@ void Emplacement::RenderInternal(float x, float y, float a, Player player, bool 
 
     // Outline
     SkPaint paint;
-    if (player == Player::FRIENDLY)
-        paint.setARGB(valid ? 255 : 48, 135, 206, 250);
-    else
-        paint.setARGB(valid ? 255 : 48, 255, 0, 255);
+    if (valid) {
+        if (player == Player::FRIENDLY)
+            paint.setARGB(255, 80, 206, 250);
+        else
+            paint.setARGB(255, 255, 0, 255);
+    } else {
+        paint.setARGB(96, 255, 255, 255);
+    }
     paint.setAntiAlias(true);
     paint.setStyle(SkPaint::Style::kStroke_Style);
     paint.setStrokeCap(SkPaint::Cap::kRound_Cap);
@@ -192,7 +235,7 @@ void Emplacement::RenderInternal(float x, float y, float a, Player player, bool 
         const SkScalar intervals[] = {2.0f, 3.0f};
         int count = sizeof(intervals) / sizeof(intervals[0]);
         SkScalar phase = (Skia::GetFrame() % 100) * 0.1f; // Adjust 0.5f for speed of walking
-        sk_sp <SkPathEffect> dashEffect = SkDashPathEffect::Make(intervals, count, phase);
+        sk_sp<SkPathEffect> dashEffect = SkDashPathEffect::Make(intervals, count, phase);
         paint.setPathEffect(dashEffect);
     }
     canvas->drawPath(outline_path, paint);

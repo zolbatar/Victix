@@ -20,7 +20,7 @@ void Terrain::GenerateTerrain(PerlinNoise &perlin) {
     heights.resize(TERRAIN_WIDTH);
     double y = dis(gen);
     for (int x = 0; x < TERRAIN_WIDTH; ++x) {
-        double pn = perlin.noise(x, y, FREQ, DEPTH) * 2.5;
+        double pn = perlin.noise(x, y, FREQ, DEPTH) * 2.0;
         heights[x] = (pn * TERRAIN_HEIGHT) + TERRAIN_HEIGHT / 2;
 //        assert(heights[x] > 0);
     }

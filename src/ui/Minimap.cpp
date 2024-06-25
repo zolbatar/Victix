@@ -21,7 +21,7 @@ void RenderMinimap(WorldPosition &state) {
     top_left.x = (io.DisplaySize.x / 2) - Terrain::F_TERRAIN_WIDTH / 2 / x_divider / Interface::GetDPIScaling();
     bottom_right.x = (io.DisplaySize.x / 2) + Terrain::F_TERRAIN_WIDTH / 2 / x_divider / Interface::GetDPIScaling();
     top_left.y = 12;
-    bottom_right.y = 74;
+    bottom_right.y = 106;
 
     // backgrounds
     auto rect = SkRect::MakeXYWH(0, 0, Terrain::F_TERRAIN_WIDTH, Terrain::F_TERRAIN_HEIGHT * 6);
@@ -92,8 +92,8 @@ void RenderMinimap(WorldPosition &state) {
     float x1 = state.offset_x;
     float x2 = io.DisplaySize.x * Interface::GetDPIScaling() / state.scale;
     x1 += x2;
-    outline.moveTo(x1, 10);
-    outline.lineTo(x1 + x2, 10);
+    outline.moveTo(x1, 0);
+    outline.lineTo(x1 + x2, 0);
     outline.moveTo(x1, Terrain::F_TERRAIN_HEIGHT * 6);
     outline.lineTo(x1 + x2, Terrain::F_TERRAIN_HEIGHT * 6);
     paint.reset();

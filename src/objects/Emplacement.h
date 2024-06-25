@@ -9,6 +9,8 @@ protected:
     static void RenderInternal(float x, float y, float a, Player player, bool outline, bool valid);
 
 public:
+    int cost;
+
     Emplacement(float x, float y, Player player);
 
     bool Update() override;

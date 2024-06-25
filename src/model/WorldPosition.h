@@ -5,5 +5,6 @@
 class WorldPosition {
 public:
     float scale, offset_x, offset_y;
-    int credits = 10000;
+    static int credits;
+    static int cost;
 };
