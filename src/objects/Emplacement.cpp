@@ -254,6 +254,7 @@ void Emplacement::Activate() {
     float x = body->GetPosition().x;
     float y = body->GetPosition().y;
     game_world->GetObjects().emplace_back(std::make_unique<Bomb>(x, y + size, player));
+    this->charge = 0.0f;
 }
 
 bool Emplacement::ReadyToActivate() {

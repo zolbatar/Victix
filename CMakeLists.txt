@@ -48,7 +48,9 @@ add_executable(${PROJECT_NAME}
         src/ui/Shaders.h
         src/ui/Skia.h
         src/ui/Skia.cpp
-        src/model/SkiaDebugDraw.h)
+        src/model/SkiaDebugDraw.h
+        src/objects/Explosion.cpp
+        src/objects/Explosion.h)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
         ${Stb_INCLUDE_DIR}

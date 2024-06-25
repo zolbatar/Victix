@@ -6,6 +6,10 @@
 extern std::unique_ptr<b2World> world;
 extern std::unique_ptr<Terrain> terrain;
 
+Object::Object(Player player) {
+    this->player = player;
+}
+
 Object::Object(float x, float y, Player player) {
     b2BodyDef bodyDef;
     bodyDef.type = b2_dynamicBody;
@@ -29,7 +33,7 @@ bool Object::ImpactUpdate() {
         return true;
 
     // Impact?
-    int xa = x + Terrain::F_TERRAIN_WIDTH / 2.0;
+    int xa = round(x + Terrain::F_TERRAIN_WIDTH / 2.0f);
     float diff = fabs(y - (float) terrain->GetHeights()[xa]);
     if (diff < radius) {
         return true;

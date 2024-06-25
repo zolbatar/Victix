@@ -108,7 +108,8 @@ void World::PreRender(float width, float height) {
             // Shade it
             SkColor colors[] = {SK_ColorTRANSPARENT, SK_ColorYELLOW};
             SkPoint points[] = {SkPoint::Make(pos.x, pos.y + Emplacement::size),
-                                SkPoint::Make(pos.x + WorldPosition::shoot_delta_x, pos.y + WorldPosition::shoot_delta_y)};
+                                SkPoint::Make(pos.x + WorldPosition::shoot_delta_x,
+                                              pos.y + WorldPosition::shoot_delta_y)};
             sk_sp<SkShader> shader = SkGradientShader::MakeLinear(points, colors, nullptr, 2, SkTileMode::kClamp);
             paint.setShader(shader);
 
@@ -261,14 +262,14 @@ void World::Process() {
         // Keep sensible
         if (WorldPosition::shoot_delta_x < 25) WorldPosition::shoot_delta_x = 25;
         if (WorldPosition::shoot_delta_x > 200) WorldPosition::shoot_delta_x = 200;
-        if (WorldPosition::shoot_delta_y < -25) WorldPosition::shoot_delta_y = -25;
+        if (WorldPosition::shoot_delta_y < 0) WorldPosition::shoot_delta_y = 0;
         if (WorldPosition::shoot_delta_y > 100) WorldPosition::shoot_delta_y = 100;
 
     } else if (mode == Mode::BOMBARD && !ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
 
         // Fire?
         for (auto &obj: this->GetObjects()) {
-            if (obj->GetType() == Type::EMPLACEMENT && obj->ReadyToActivate()) {
+            if (obj->GetType() == Type::EMPLACEMENT && obj->ReadyToActivate() && obj->GetPlayer() == Player::FRIENDLY) {
                 obj->Activate();
             }
         }

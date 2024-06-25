@@ -8,11 +8,13 @@
 class Object {
 protected:
     b2Body *body = nullptr;
-    float radius = 1.5f;
+    float radius = 10.0f;
     float minimap_size = 5.0f;
     Player player;
 
 public:
+    Object(Player player);
+
     Object(float x, float y, Player player);
 
     Object(const Object &) = delete;
