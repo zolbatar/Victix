@@ -6,6 +6,8 @@
 extern std::unique_ptr<b2World> world;
 extern std::unique_ptr<Terrain> terrain;
 
+float Object::world_adjust = 1.0f;
+
 Object::Object(Player player) {
     this->player = player;
 }
@@ -13,7 +15,7 @@ Object::Object(Player player) {
 Object::Object(float x, float y, Player player) {
     b2BodyDef bodyDef;
     bodyDef.type = b2_dynamicBody;
-    bodyDef.position.Set(x, y);
+    bodyDef.position.Set(x / world_adjust, y / world_adjust);
     body = world->CreateBody(&bodyDef);
     this->player = player;
 }

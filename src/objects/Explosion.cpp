@@ -12,7 +12,7 @@ enum CollisionCategory {
 
 Explosion::Explosion(float x, float y, Player player) : Object(x, y, player) {
     b2CircleShape circleShape;
-    circleShape.m_radius = explosion_radius / 2.0f;
+    circleShape.m_radius = explosion_radius / 2.0f / Object::world_adjust;
     b2FixtureDef fixtureDef;
     fixtureDef.shape = &circleShape;
     fixtureDef.isSensor = true;

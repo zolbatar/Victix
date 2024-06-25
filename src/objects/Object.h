@@ -13,6 +13,8 @@ protected:
     Player player;
 
 public:
+    static float world_adjust;
+
     Object(Player player);
 
     Object(float x, float y, Player player);

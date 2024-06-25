@@ -46,10 +46,11 @@ void Terrain::UpdateBox2D() {
     b2Vec2 vertices[hsize + 2];
     for (int i = 0; i < heights.size(); i++) {
         float x = i - hsize_half;
-        vertices[hsize - i - 1].Set(x, heights[i]);
+        vertices[hsize - i - 1].Set(x / Object::world_adjust, heights[i] / Object::world_adjust);
     }
-    vertices[heights.size()].Set(-hsize_half, -Terrain::TERRAIN_HEIGHT);
-    vertices[heights.size() + 1].Set(hsize_half, -Terrain::TERRAIN_HEIGHT);
+    vertices[heights.size()].Set(-hsize_half / Object::world_adjust, -Terrain::TERRAIN_HEIGHT / Object::world_adjust);
+    vertices[heights.size() + 1].Set(hsize_half / Object::world_adjust,
+                                     -Terrain::TERRAIN_HEIGHT / Object::world_adjust);
     b2ChainShape groundBox;
     groundBox.CreateLoop(vertices, hsize + 2);
     groundBody->CreateFixture(&groundBox, 0.0f);

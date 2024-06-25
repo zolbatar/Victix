@@ -11,10 +11,10 @@ float Emplacement::size = 15.0f;
 
 Emplacement::Emplacement(float x, float y, Player player) : Object(x, y, player) {
     b2Vec2 vertices[4];
-    vertices[0].Set(size * 0.5f, -size * 0.5f);
-    vertices[1].Set(size * 0.2f, size * 1.2f);
-    vertices[2].Set(-size * 0.2f, size * 1.2f);
-    vertices[3].Set(-size * 0.5f, -size * 0.5f);
+    vertices[0].Set(size * 0.5f / Object::world_adjust, -size * 0.5f / Object::world_adjust);
+    vertices[1].Set(size * 0.2f / Object::world_adjust, size * 1.2f / Object::world_adjust);
+    vertices[2].Set(-size * 0.2f / Object::world_adjust, size * 1.2f / Object::world_adjust);
+    vertices[3].Set(-size * 0.5f / Object::world_adjust, -size * 0.5f / Object::world_adjust);
     b2PolygonShape dynamicBox;
     dynamicBox.Set(vertices, 4);
     b2FixtureDef fixtureDef;

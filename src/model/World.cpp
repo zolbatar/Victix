@@ -125,7 +125,7 @@ void World::PreRender(float width, float height) {
         canvas->translate(io.DisplaySize.x - (state.offset_x * state.scale),
                           io.DisplaySize.y * Interface::GetDPIScaling() -
                           (float) (Terrain::F_TERRAIN_HEIGHT) * state.scale);
-        canvas->scale(state.scale, -state.scale);
+        canvas->scale(state.scale * Object::world_adjust, -state.scale * Object::world_adjust);
         world->DebugDraw();
         canvas->restore();
     }
@@ -177,11 +177,11 @@ void World::PreRender(float width, float height) {
         ImGui::PopFont();
     }
 
-    ImGui::Text("Position: %.2f %.2f", state.offset_x, state.offset_y);
+/*    ImGui::Text("Position: %.2f %.2f", state.offset_x, state.offset_y);
     ImGui::Text("Scale: %.2f", state.scale);
     ImGui::Text("Bodies: %d/%zu", world->GetBodyCount(), objects.size());
     ImVec2 pos = ImGui::GetMousePos();
-    ImGui::Text("Mouse: %.2f %.2f", pos.x, pos.y);
+    ImGui::Text("Mouse: %.2f %.2f", pos.x, pos.y);*/
     updateFPS();
     ImGui::PopStyleColor();
     ImGui::EndChild();

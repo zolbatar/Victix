@@ -51,13 +51,13 @@ bool Bomb::Update() {
 
 Bomb::Bomb(float x, float y, Player player) : Object(x, y, player) {
     b2CircleShape circleShape;
-    circleShape.m_radius = size / 2.0f;
+    circleShape.m_radius = size / 2.0f / Object::world_adjust;
     b2FixtureDef fixtureDef;
     fixtureDef.shape = &circleShape;
     fixtureDef.density = 1.0f;
     fixtureDef.friction = 0.3f;
     body->CreateFixture(&fixtureDef);
-    b2Vec2 initialVelocity(WorldPosition::shoot_delta_x, WorldPosition::shoot_delta_y);
+    b2Vec2 initialVelocity(WorldPosition::shoot_delta_x / Object::world_adjust, WorldPosition::shoot_delta_y / Object::world_adjust);
     body->SetLinearVelocity(initialVelocity);
 }
 
